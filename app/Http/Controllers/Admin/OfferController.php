@@ -111,7 +111,7 @@ public function offerConversionRate($listing_id)
 {
     $totalOffers = Offer::where('listing_id', $listing_id)->count();
     if ($totalOffers == 0) {
-        return response()->json(['conversion_rate' => 0], 200);
+        return response()->json(['conversion_rate' => 0], 404);
     }
 
     $acceptedOffers = Offer::where('listing_id', $listing_id)
