@@ -110,6 +110,9 @@ class OfferController extends Controller
 public function offerConversionRate($listing_id)
 {
     $totalOffers = Offer::where('listing_id', $listing_id)->count();
+    if ($totalOffers == 0) {
+        return response()->json(['conversion_rate' => 0], 200);
+    }
 
     $acceptedOffers = Offer::where('listing_id', $listing_id)
                             ->where('status', 'accepted') // Assuming 'accepted' is the status when an offer is accepted
