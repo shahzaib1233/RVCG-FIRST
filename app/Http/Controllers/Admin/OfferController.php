@@ -104,4 +104,25 @@ class OfferController extends Controller
             return response()->json(['message' => 'Failed to delete offer'], 500);
         }
     }
+
+
+    // Calculate offer conversion rate for a specific property
+public function offerConversionRate($listing_id)
+{
+    $totalOffers = Offer::where('listing_id', $listing_id)->count();
+
+    $acceptedOffers = Offer::where('listing_id', $listing_id)
+                            ->where('status', 'accepted') // Assuming 'accepted' is the status when an offer is accepted
+                            ->count();
+
+    if ($totalOffers == 0) {
+        return response()->json(['conversion_rate' => 0], 200);
+    }
+
+    $conversionRate = ($acceptedOffers / $totalOffers) * 100;
+
+    return response()->json(['conversion_rate' => $conversionRate], 200);
+}
+
+
 }

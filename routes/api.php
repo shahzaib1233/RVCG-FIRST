@@ -61,6 +61,10 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
     // List all offers
     Route::get('/offers', [OfferController::class, 'index']);
+
+    // offer conversions rate
+    Route::get('/offerConversionRate/{id}', [OfferController::class, 'offerConversionRate']);
+
     // Show a specific offer
     Route::get('/offers/{id}', [OfferController::class, 'show']);
     // Create a new offer
