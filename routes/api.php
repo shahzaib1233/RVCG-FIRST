@@ -237,10 +237,10 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
 
     Route::get('/referrals/users/used', [AuthController::class, 'getUsersWhoseReferralCodeWasUsed']);
 
-   
+    Route::post('admin/testimage',[Controller::class,'image']);
+
 });
 
-Route::post('admin/testimage',[Controller::class,'image']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
