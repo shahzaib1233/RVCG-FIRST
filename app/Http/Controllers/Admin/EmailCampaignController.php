@@ -62,17 +62,20 @@
 
         public function getemailrecord()
         {
-            $email_campaigns = EmailCampaign::all();
+            // Eager load 'user' relationship
+            $email_campaigns = EmailCampaign::with('user')->get();
+        
             if ($email_campaigns->isEmpty()) {
                 return response()->json([
                     'message' => 'No email campaigns found.'
                 ], 404);
             }
+        
             return response()->json([
                 'email_campaigns' => $email_campaigns
-            ], 200);    
-
+            ], 200);
         }
+        
 
 
 
