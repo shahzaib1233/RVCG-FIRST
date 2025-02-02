@@ -87,6 +87,7 @@
 
 
 
+
         public function sendEmailCampaigntoleads(Request $request)
     {
         // Get the array of lead IDs from the front end
@@ -143,7 +144,20 @@
 
 
 
-
-
+    public function showemailrecord($id)
+    {
+        $email_campaigns = EmailCampaign::find($id);
+    
+        if (!$email_campaigns) {
+            return response()->json([
+                'message' => 'Not Found'
+            ], 404);
+        }
+    
+        return response()->json([
+            'email_campaigns' => $email_campaigns
+        ], 200);
+    }
+    
 
     }

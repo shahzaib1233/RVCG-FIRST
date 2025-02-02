@@ -197,6 +197,7 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
     Route::get('getallusers', [AuthController::class, 'GetAllUsers']);
     Route::post('/send-email-campaign', [EmailCampaignController::class, 'sendEmailCampaign']);
     Route::get('/get-email-record', [EmailCampaignController::class, 'getemailrecord']);
+    Route::get('/showemailrecord/{id}', [EmailCampaignController::class, 'showemailrecord']);
 
     //Lead Types Routes
     Route::get('/lead-types', [LeadTypeController::class, 'GetLeadType']);
