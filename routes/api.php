@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\PackagesController;
 use App\Http\Controllers\Messages\Messages as MessagesController;
 use App\Http\Controllers\Admin\EmailCampaignController;
 use App\Http\Controllers\Admin\PackagesItemsController;
+use App\Http\Controllers\Controller;
 
 Route::apiResource('post', PostController::class);
 Route::post('register',[AuthController::class,'register']);
@@ -239,6 +240,7 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
    
 });
 
+Route::post('admin/testimage',[Controller::class,'image']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
