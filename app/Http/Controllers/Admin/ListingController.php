@@ -11,6 +11,7 @@ use App\Http\Controllers\Controller;
 use App\Models\admin\PropertyType;
 use App\Models\admin\SearchHistory;
 use App\Models\admin\cities;
+use Illuminate\Support\Facades\Storage;
 
 use  \Illuminate\Support\Facades\Facade;
 class ListingController extends Controller

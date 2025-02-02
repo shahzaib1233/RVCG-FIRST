@@ -237,7 +237,7 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
 
     Route::get('/referrals/users/used', [AuthController::class, 'getUsersWhoseReferralCodeWasUsed']);
 
-    Route::post('admin/testimage',[Controller::class,'image']);
+    Route::post('admin/testimage',[ListingController::class,'image']);
 
 });
 
