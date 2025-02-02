@@ -144,6 +144,21 @@
 
 
 
+    // public function showemailrecord($id)
+    // {
+    //     $email_campaigns = EmailCampaign::find($id);
+    
+    //     if (!$email_campaigns) {
+    //         return response()->json([
+    //             'message' => 'Not Found'
+    //         ], 404);
+    //     }
+    
+    //     return response()->json([
+    //         'email_campaigns' => $email_campaigns
+    //     ], 200);
+    // }
+    
     public function showemailrecord($id)
     {
         $email_campaigns = EmailCampaign::find($id);
@@ -154,10 +169,19 @@
             ], 404);
         }
     
+        // Strip HTML tags to convert to plain text
+        $plain_text_message = strip_tags($email_campaigns->message);
+    
         return response()->json([
-            'email_campaigns' => $email_campaigns
+            'email_campaigns' => [
+                'id' => $email_campaigns->id,
+                'user_id' => $email_campaigns->user_id,
+                'message' => $plain_text_message, // returning the plain text version of the message
+                'status' => $email_campaigns->status,
+                'created_at' => $email_campaigns->created_at,
+                'updated_at' => $email_campaigns->updated_at,
+            ]
         ], 200);
     }
     
-
     }
