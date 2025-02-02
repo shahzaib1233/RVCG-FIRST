@@ -3,7 +3,7 @@
     namespace App\Http\Controllers\Admin;
 
     use App\Http\Controllers\Controller;
-    use App\Models\Admin\EmailCampaign;
+    use App\Models\admin\EmailCampaign;
     use App\Models\admin\Lead;
     use App\Models\User;
     use Illuminate\Http\Request;
