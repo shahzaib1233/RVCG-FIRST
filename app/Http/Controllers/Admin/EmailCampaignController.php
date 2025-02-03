@@ -14,8 +14,8 @@
         public function sendEmailCampaign(Request $request)
         {
             // Get the array of user IDs from the front end
-            $userIds = $request->input('user_id'); // Array of lead IDs
-            $message = $request->input('message');  // The dynamic email body content
+            $userIds = $request->input('user_id'); 
+            $message = $request->input('message'); 
             $subject = $request->input('subject');
 
             // Validate inputs
@@ -27,23 +27,19 @@
             foreach ($userIds as $userId) {
                 $user = User::find($userId);
                 if ($user && !empty($user->email)) {
-                    // Send the email
                     try {
-                        // Send email
                         Mail::send([], [], function ($mail) use ($user, $message, $subject) {
                             $mail->to($user->email)
                                 ->subject($subject)
                                 ->html($message);
                         });
 
-                        // Store in the email_campaigns table
                         EmailCampaign::create([
                             'user_id' => $user->id,
                             'message' => $message,
                             'status' => 'sent'
                         ]);
                     } catch (\Exception $e) {
-                        // If sending fails, store the record with status 'failed'
                         EmailCampaign::create([
                             'user_id' => $user->id,
                             'message' => $message,
@@ -51,7 +47,6 @@
                         ]);
                     }
 
-                    // Wait for 2 seconds before sending another email
                     sleep(2);
                 }
             }
@@ -62,7 +57,6 @@
 
         public function getemailrecord()
         {
-            // Eager load 'user' relationship
             $email_campaigns = EmailCampaign::with('user')->get();
         
             if ($email_campaigns->isEmpty()) {
@@ -93,30 +87,24 @@
 
         public function sendEmailCampaigntoleads(Request $request)
     {
-        // Get the array of lead IDs from the front end
-        $leadIds = $request->input('lead_ids'); // Array of lead IDs
-        $message = $request->input('message');  // The dynamic email body content
-        $subject = $request->input('subject');  // The dynamic subject content
+        $leadIds = $request->input('lead_ids');
+        $message = $request->input('message'); 
+        $subject = $request->input('subject'); 
 
-        // Validate inputs
         if (empty($leadIds) || empty($message) || empty($subject)) {
             return response()->json(['message' => 'Lead IDs, subject, and message content are required.'], 400);
         }
 
-        // Loop through the lead IDs and send emails
         foreach ($leadIds as $leadId) {
             $lead = Lead::find($leadId);
             if ($lead && !empty($lead->email)) {
-                // Send the email
                 try {
-                    // Send email
                     Mail::send([], [], function ($mail) use ($lead, $message, $subject) {
                         $mail->to($lead->email)
                             ->subject($subject)
                             ->html($message);
                     });
 
-                    // Store in the email_campaigns table
                     EmailCampaign::create([
                         'lead_id' => $lead->id,
                         'message' => $message,
@@ -124,7 +112,6 @@
                         'status' => 'sent'
                     ]);
                 } catch (\Exception $e) {
-                    // If sending fails, store the record with status 'failed'
                     EmailCampaign::create([
                         'lead_id' => $lead->id,
                         'message' => $message,
@@ -133,7 +120,6 @@
                     ]);
                 }
 
-                // Wait for 2 seconds before sending another email
                 sleep(2);
             }
         }
@@ -172,14 +158,13 @@
             ], 404);
         }
     
-        // Strip HTML tags to convert to plain text
         $plain_text_message = strip_tags($email_campaigns->message);
     
         return response()->json([
             'email_campaigns' => [
                 'id' => $email_campaigns->id,
                 'user_id' => $email_campaigns->user_id,
-                'message' => $plain_text_message, // returning the plain text version of the message
+                'message' => $plain_text_message, 
                 'status' => $email_campaigns->status,
                 'created_at' => $email_campaigns->created_at,
                 'updated_at' => $email_campaigns->updated_at,

@@ -12,7 +12,6 @@ class EmailCampaign extends Model
 
     protected $fillable = ['user_id', 'message', 'status'];
 
-    // Optionally, you can define relationships if needed (for example, User)
     public function user()
     {
         return $this->belongsTo(User::class);

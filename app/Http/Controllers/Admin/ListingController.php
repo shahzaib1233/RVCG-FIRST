@@ -33,16 +33,13 @@ class ListingController extends Controller
 
     public function index()
 {
-    // Retrieve listings with necessary relationships
     $listings = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])->orderBy('id', 'desc')->get();
     
-    // Transform the collection to add the dynamic 'country_name' attribute
     $listings->transform(function ($listing) {
         $listing->country_name = $listing->country->country_name; // Ensure 'country_name' is accessed correctly
         return $listing;
     });
 
-    // Return the listings as a JSON response
     return response()->json($listings, 201);
 }
 
@@ -50,14 +47,12 @@ class ListingController extends Controller
 
     public function store(Request $request)
     {
-        // Check if user is authenticated
         if (!Auth::check()) {
             return response()->json([
                 'error' => 'Unauthorized. Please log in.',
-            ], 401); // Unauthorized error (401)
+            ], 401); 
         }
     
-        // Validate incoming data
         $validatedData = $request->validate([
             'title' => 'required|string',
             'description' => 'required|string',
@@ -180,12 +175,10 @@ class ListingController extends Controller
                       ->find($id);
 
     if ($listing) {
-        // Assign the country name (if the country relationship exists)
         $listing->country_name = $listing->country ? $listing->country->name : null;
 
         return response()->json($listing);
     } else {
-        // Return a custom response if the listing is not found
         return response()->json(['message' => 'Property Not Found'], 404);
     }
     }
@@ -195,7 +188,7 @@ class ListingController extends Controller
         if (!Auth::check()) {
             return response()->json([
                 'error' => 'Unauthorized. Please log in to update the listing.'
-            ], 401); // Unauthorized error code
+            ], 401); 
         }
 
         $validatedData = $request->validate([
@@ -225,8 +218,8 @@ class ListingController extends Controller
             'half_bathrooms' => 'nullable|integer',
             'arv' => 'nullable|numeric',
             'gross_margin' => 'nullable|numeric',
-            'is_featured' => 'nullable|in:0,1', // Ensures only 0 or 1 can be assigned
-            'is_approved' => 'nullable|in:0,1', // Ensures only 0 or 1 can be assigned
+            'is_featured' => 'nullable|in:0,1', 
+            'is_approved' => 'nullable|in:0,1', 
             'estimated_roi' => 'nullable|numeric',
             'geolocation_coordinates' => 'nullable|string',
             'zip_code' => 'nullable|string',
@@ -257,18 +250,16 @@ class ListingController extends Controller
        
 
         if ($request->has('other_features') && is_array($request->other_features)) {
-            // Validate that the IDs exist in the other_features table
             $validFeatureIds = DB::table('other_features')
                 ->whereIn('id', $validatedData['other_features'])
                 ->pluck('id')
                 ->toArray();
         
-            // Now, we need to store these valid IDs in the property_feature table
             $dataToInsert = [];
             foreach ($validFeatureIds as $featureId) {
                 $dataToInsert[] = [
-                    'listings_id' => $id, // Current listing ID
-                    'feature_id' => $featureId, // Valid feature ID from other_features
+                    'listings_id' => $id, 
+                    'feature_id' => $featureId, 
                 ];
             }
         
@@ -305,38 +296,32 @@ class ListingController extends Controller
 
     public function destroy($id)
 {
-    // Check if the user is logged in
     if (!Auth::check()) {
         return response()->json([
             'error' => 'Unauthorized. Please log in to delete the listing.'
-        ], 401); // Unauthorized error code
+        ], 401); 
     }
 
-    // Get the authenticated user ID and role
-    $user = Auth::user(); // Get the authenticated user
+    $user = Auth::user(); 
     $user_id = $user->id;
     
-    // Find the listing
     $listing = Listing::find($id);
     if (!$listing) {
         return response()->json([
             'error' => 'Listing not found.'
-        ], 404); // Not found error code
+        ], 404); 
     }
 
-    // Check if the user is an admin or the owner of the listing
     if ($user->role === 'admin' || $listing->user_id === $user_id) {
-        // Detach all related property features (removes entries from the pivot table)
         $listing->propertyFeatures()->detach();
 
-        // Delete the listing itself
         $listing->delete();
 
         return response()->json(['message' => 'Listing deleted successfully']);
     } else {
         return response()->json([
             'error' => 'You are not authorized to delete this listing.'
-        ], 403); // Forbidden error code
+        ], 403); 
     }
 }
 
@@ -356,10 +341,8 @@ class ListingController extends Controller
             ]);
         }
 
-        // Initialize the query builder for the Property model
         $query = Listing::query();
 
-        // 1. Filter by price (optional)
         if ($request->has('price_min') && $request->price_min) {
             $query->where('price', '>=', $request->price_min);
         }
@@ -368,12 +351,10 @@ class ListingController extends Controller
             $query->where('price', '<=', $request->price_max);
         }
 
-        // 2. Filter by city (using city_id from listings table)
         if ($request->has('city') && $request->city) {
             $query->where('city_id', '=', $request->city);
         }
 
-        // 3. Filter by area (square_foot)
         if ($request->has('area_min') && $request->area_min) {
             $query->where('square_foot', '>=', $request->area_min);
         }
@@ -392,10 +373,8 @@ class ListingController extends Controller
     }
 
 
-    //display search history 
     public function getUserSearchHistory()
 {
-    // Get the logged-in user's search history
     $history = SearchHistory::where('user_id', Auth::id())->get();
     
     return response()->json($history);
@@ -495,7 +474,6 @@ public function show_single_Status($id)
 
 public function image(Request $request)
 {
-    // Validate the image input
     $request->validate([
 'image' => 'required|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
     ]);
