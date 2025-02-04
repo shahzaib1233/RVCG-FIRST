@@ -164,6 +164,7 @@
             'email_campaigns' => [
                 'id' => $email_campaigns->id,
                 'user_id' => $email_campaigns->user_id,
+                'subject'=> $email_campaigns->subject,
                 'message' => $plain_text_message, 
                 'status' => $email_campaigns->status,
                 'created_at' => $email_campaigns->created_at,
