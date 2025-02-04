@@ -65,4 +65,11 @@ public function propertyFeatures()
 }
 
 
+public function kpis()
+{
+    return $this->hasOne(PropertyKpi::class);
+}
+
+
+
 }

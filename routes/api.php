@@ -19,6 +19,7 @@ use App\Http\Controllers\Messages\Messages as MessagesController;
 use App\Http\Controllers\Admin\EmailCampaignController;
 use App\Http\Controllers\Admin\PackagesItemsController;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\PropertyKpiController;
 
 Route::apiResource('post', PostController::class);
 Route::post('register',[AuthController::class,'register']);
@@ -246,6 +247,12 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
     Route::get('/referrals/users/used', [AuthController::class, 'getUsersWhoseReferralCodeWasUsed']);
 
     Route::post('admin/testimage',[ListingController::class,'image']);
+
+    //show kpi data
+    Route::get('Kpi-show/{id}', [PropertyKpiController::class,'show']);
+    //show accepted offer percentage
+    Route::get('offer-accept/{id}', [PropertyKpiController::class,'getAcceptedOfferPercentage']);
+    
 
 });
 

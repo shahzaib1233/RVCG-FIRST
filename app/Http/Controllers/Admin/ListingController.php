@@ -12,6 +12,7 @@ use App\Http\Controllers\Controller;
 use App\Models\admin\PropertyType;
 use App\Models\admin\SearchHistory;
 use App\Models\admin\cities;
+use App\Models\admin\PropertyKpi;
 use Illuminate\Support\Facades\Storage;
 
 use  \Illuminate\Support\Facades\Facade;
@@ -265,6 +266,12 @@ class ListingController extends Controller
 
     if ($listing) {
         $listing->country_name = $listing->country ? $listing->country->name : null;
+        PropertyKpi::create(
+            [
+                'users_id'=>Auth::id(),
+                'listing_id'=>$listing->id,
+            ]
+            );
 
         return response()->json($listing);
     } else {
@@ -272,117 +279,251 @@ class ListingController extends Controller
     }
     }
 
-    public function update(Request $request, $id)
-    {
-        if (!Auth::check()) {
-            return response()->json([
-                'error' => 'Unauthorized. Please log in to update the listing.'
-            ], 401); 
-        }
+    // public function update(Request $request, $id)
+    // {
+    //     if (!Auth::check()) {
+    //         return response()->json([
+    //             'error' => 'Unauthorized. Please log in to update the listing.'
+    //         ], 401); 
+    //     }
 
-        $validatedData = $request->validate([
-            'title' => 'required|string',
-            'description' => 'required|string',
-            'city_id' => 'required|exists:cities,id',
-            'country_id' => 'required|exists:countries,id',
-            'property_type_id' => 'required|exists:property_types,id',
-            'property_status_id' => 'required|exists:property_statuses,id',
-            'price' => 'required|numeric',
-            'listing_date' => 'required|date',
-            'square_foot' => 'nullable|numeric',
-            'parking' => 'nullable|string',
-            'year_built' => 'nullable|integer',
-            'lot_size' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
-            'latitude' => 'nullable|numeric',
-            'school_district' => 'nullable|string',
-            'walkability_score' => 'nullable|integer',
-            'crime_rate' => 'nullable|numeric',
-            'roi' => 'nullable|numeric',
-            'monthly_rent' => 'nullable|numeric',
-            'cap_rate' => 'nullable|numeric',
-            'address' => 'nullable|string',
-            'bedrooms' => 'nullable|integer',
-            'bathrooms' => 'nullable|integer',
-            'half_bathrooms' => 'nullable|integer',
-            'arv' => 'nullable|numeric',
-            'gross_margin' => 'nullable|numeric',
-            'is_featured' => 'nullable|in:0,1', 
-            'is_approved' => 'nullable|in:0,1', 
-            'estimated_roi' => 'nullable|numeric',
-            'geolocation_coordinates' => 'nullable|string',
-            'zip_code' => 'nullable|string',
-            'area' => 'nullable|string',
-            'gdrp_agreement' => 'nullable|string',
-            'other_features' => 'nullable|array', 
-            'other_features.*' => 'exists:other_features,id|integer',
-            'gdrp_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
+    //     $validatedData = $request->validate([
+    //         'title' => 'required|string',
+    //         'description' => 'required|string',
+    //         'city_id' => 'required|exists:cities,id',
+    //         'country_id' => 'required|exists:countries,id',
+    //         'property_type_id' => 'required|exists:property_types,id',
+    //         'property_status_id' => 'required|exists:property_statuses,id',
+    //         'price' => 'required|numeric',
+    //         'listing_date' => 'required|date',
+    //         'square_foot' => 'nullable|numeric',
+    //         'parking' => 'nullable|string',
+    //         'year_built' => 'nullable|integer',
+    //         'lot_size' => 'nullable|numeric',
+    //         'longitude' => 'nullable|numeric',
+    //         'latitude' => 'nullable|numeric',
+    //         'school_district' => 'nullable|string',
+    //         'walkability_score' => 'nullable|integer',
+    //         'crime_rate' => 'nullable|numeric',
+    //         'roi' => 'nullable|numeric',
+    //         'monthly_rent' => 'nullable|numeric',
+    //         'cap_rate' => 'nullable|numeric',
+    //         'address' => 'nullable|string',
+    //         'bedrooms' => 'nullable|integer',
+    //         'bathrooms' => 'nullable|integer',
+    //         'half_bathrooms' => 'nullable|integer',
+    //         'arv' => 'nullable|numeric',
+    //         'gross_margin' => 'nullable|numeric',
+    //         'is_featured' => 'nullable|in:0,1', 
+    //         'is_approved' => 'nullable|in:0,1', 
+    //         'estimated_roi' => 'nullable|numeric',
+    //         'geolocation_coordinates' => 'nullable|string',
+    //         'zip_code' => 'nullable|string',
+    //         'area' => 'nullable|string',
+    //         'gdrp_agreement' => 'nullable|string',
+    //         'other_features' => 'nullable|array', 
+    //         'other_features.*' => 'exists:other_features,id|integer',
+    //         'gdrp_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
     
-        ]);
+    //     ]);
 
-        $user_id = Auth::id();
-        // Find and update the listing
-        $listing = Listing::find($id);
-        if (!$listing) {
-            return response()->json([
-                'error' => 'Listing not found.'
-            ], 404); // Not found error code
-        }
+    //     $user_id = Auth::id();
+    //     // Find and update the listing
+    //     $listing = Listing::find($id);
+    //     if (!$listing) {
+    //         return response()->json([
+    //             'error' => 'Listing not found.'
+    //         ], 404); // Not found error code
+    //     }
 
 
-        if ($request->hasFile('gdrp_image')) {
-            $image = $request->file('gdrp_image');
-            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension(); // Adding uniqid for uniqueness
-            $imagePath = public_path('uploads/Listings/Image');
+    //     if ($request->hasFile('gdrp_image')) {
+    //         $image = $request->file('gdrp_image');
+    //         $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension(); // Adding uniqid for uniqueness
+    //         $imagePath = public_path('uploads/Listings/Image');
             
-            // Ensure the directory exists
-            if (!file_exists($imagePath)) {
-                mkdir($imagePath, 0775, true); // Create directory if it doesn't exist
-            }
+    //         // Ensure the directory exists
+    //         if (!file_exists($imagePath)) {
+    //             mkdir($imagePath, 0775, true); // Create directory if it doesn't exist
+    //         }
     
-            // Move the image to the uploads folder
-            $image->move($imagePath, $imageName);
+    //         // Move the image to the uploads folder
+    //         $image->move($imagePath, $imageName);
     
-            // Update the gdrp_agreement path in the database
-            $listing->gdrp_agreement = 'uploads/Listings/Image/' . $imageName;
-        }
+    //         // Update the gdrp_agreement path in the database
+    //         $listing->gdrp_agreement = 'uploads/Listings/Image/' . $imageName;
+    //     }
 
-        $listing->update(array_merge($validatedData, ['user_id' => $user_id]));
-        // if ($request->has('other_features') && count($request->other_features) > 0) {
-        //     // Filter only valid feature IDs
-        //     $validFeatureIds = propertyFeatures::whereIn('id', $validatedData['other_features'])->pluck('id')->toArray();
-        //     if ($validFeatureIds) {
-        //         // Sync the valid features (this detaches old features and attaches the new ones in one step)
-        //         $listing->propertyFeatures()->sync($validFeatureIds);
-        //     }
-        // }
+    //     $listing->update(array_merge($validatedData, ['user_id' => $user_id]));
+    //     // if ($request->has('other_features') && count($request->other_features) > 0) {
+    //     //     // Filter only valid feature IDs
+    //     //     $validFeatureIds = propertyFeatures::whereIn('id', $validatedData['other_features'])->pluck('id')->toArray();
+    //     //     if ($validFeatureIds) {
+    //     //         // Sync the valid features (this detaches old features and attaches the new ones in one step)
+    //     //         $listing->propertyFeatures()->sync($validFeatureIds);
+    //     //     }
+    //     // }
        
 
-        if ($request->has('other_features') && is_array($request->other_features)) {
-            $validFeatureIds = DB::table('other_features')
-                ->whereIn('id', $validatedData['other_features'])
-                ->pluck('id')
-                ->toArray();
+    //     if ($request->has('other_features') && is_array($request->other_features)) {
+    //         $validFeatureIds = DB::table('other_features')
+    //             ->whereIn('id', $validatedData['other_features'])
+    //             ->pluck('id')
+    //             ->toArray();
         
-            $dataToInsert = [];
-            foreach ($validFeatureIds as $featureId) {
-                $dataToInsert[] = [
-                    'listings_id' => $id, 
-                    'feature_id' => $featureId, 
-                ];
+    //         $dataToInsert = [];
+    //         foreach ($validFeatureIds as $featureId) {
+    //             $dataToInsert[] = [
+    //                 'listings_id' => $id, 
+    //                 'feature_id' => $featureId, 
+    //             ];
+    //         }
+        
+    //         // Perform a bulk insert into the property_feature table
+    //         if (!empty($dataToInsert)) {
+    //             DB::table('property_feature')->insert($dataToInsert);
+    //         }
+    //     }
+        
+
+
+        
+    //     return response()->json($listing);
+    // }
+
+    //update uncommmet if making any issye
+
+
+
+
+    public function update(Request $request, $id)
+{
+    if (!Auth::check()) {
+        return response()->json([
+            'error' => 'Unauthorized. Please log in to update the listing.'
+        ], 401); 
+    }
+
+    $validatedData = $request->validate([
+        'title' => 'required|string',
+        'description' => 'required|string',
+        'city_id' => 'required|exists:cities,id',
+        'country_id' => 'required|exists:countries,id',
+        'property_type_id' => 'required|exists:property_types,id',
+        'property_status_id' => 'required|exists:property_statuses,id',
+        'price' => 'required|numeric',
+        'listing_date' => 'required|date',
+        'square_foot' => 'nullable|numeric',
+        'parking' => 'nullable|string',
+        'year_built' => 'nullable|integer',
+        'lot_size' => 'nullable|numeric',
+        'longitude' => 'nullable|numeric',
+        'latitude' => 'nullable|numeric',
+        'school_district' => 'nullable|string',
+        'walkability_score' => 'nullable|integer',
+        'crime_rate' => 'nullable|numeric',
+        'roi' => 'nullable|numeric',
+        'monthly_rent' => 'nullable|numeric',
+        'cap_rate' => 'nullable|numeric',
+        'address' => 'nullable|string',
+        'bedrooms' => 'nullable|integer',
+        'bathrooms' => 'nullable|integer',
+        'half_bathrooms' => 'nullable|integer',
+        'arv' => 'nullable|numeric',
+        'gross_margin' => 'nullable|numeric',
+        'is_featured' => 'nullable|in:0,1', 
+        'is_approved' => 'nullable|in:0,1', 
+        'estimated_roi' => 'nullable|numeric',
+        'geolocation_coordinates' => 'nullable|string',
+        'zip_code' => 'nullable|string',
+        'area' => 'nullable|string',
+        'gdrp_agreement' => 'nullable|string',
+        'other_features' => 'nullable|array', 
+        'other_features.*' => 'exists:other_features,id|integer',
+        'gdrp_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
+        'Listing_media.*' => 'file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
+    ]);
+
+    $user_id = Auth::id();
+    
+    // Find and update the listing
+    $listing = Listing::find($id);
+    if (!$listing) {
+        return response()->json([
+            'error' => 'Listing not found.'
+        ], 404);
+    }
+
+    // Handle GDPR Image Update
+    if ($request->hasFile('gdrp_image')) {
+        // Delete old GDPR image if exists
+        if ($listing->gdrp_agreement && file_exists(public_path($listing->gdrp_agreement))) {
+            unlink(public_path($listing->gdrp_agreement));
+        }
+
+        $image = $request->file('gdrp_image');
+        $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+        $imagePath = 'uploads/Listings/Image/gdrp/';
+        
+        $image->move(public_path($imagePath), $imageName);
+
+        // Update the GDPR agreement path in the database
+        $listing->gdrp_agreement = $imagePath . $imageName;
+    }
+
+    // Handle Listing Media Updates (Images & Files)
+    if ($request->hasFile('Listing_media')) {
+        // Delete old media before updating (optional, depends on use case)
+        $oldMedia = ListingMedia::where('listing_id', $id)->get();
+        foreach ($oldMedia as $media) {
+            if (file_exists(public_path($media->file_url))) {
+                unlink(public_path($media->file_url));
             }
-        
-            // Perform a bulk insert into the property_feature table
-            if (!empty($dataToInsert)) {
-                DB::table('property_feature')->insert($dataToInsert);
+            $media->delete();
+        }
+
+        foreach ($request->file('Listing_media') as $file) {
+            if ($file->isValid()) {
+                $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $filePath = 'uploads/Listings/Image/';
+                
+                $file->move(public_path($filePath), $fileName);
+
+                ListingMedia::create([
+                    'listing_id' => $listing->id,
+                    'file_name' => $fileName,
+                    'file_url' => $filePath . $fileName,
+                    'media_type' => $file->getClientMimeType(),
+                ]);
             }
         }
-        
-
-
-        
-        return response()->json($listing);
     }
+
+    // Update Listing
+    $listing->update(array_merge($validatedData, ['user_id' => $user_id]));
+
+    // Update Property Features
+    if ($request->has('other_features') && is_array($request->other_features)) {
+        // Get valid features
+        $validFeatureIds = DB::table('other_features')
+            ->whereIn('id', $validatedData['other_features'])
+            ->pluck('id')
+            ->toArray();
+
+        // Sync Features (this replaces old with new ones)
+        $listing->propertyFeatures()->sync($validFeatureIds);
+    }
+
+    return response()->json([
+        'message' => 'Listing updated successfully.',
+        'listing' => $listing
+    ], 200);
+}
+
+
+
+
+
 
     // public function destroy($id)
     // {
@@ -514,7 +655,7 @@ public function UpdatePropertyType(Request $request, $id)
     ]);
 
     $propertyType = PropertyType::findOrFail($id);
-    $propertyType->update($validatedData);
+    $propertyType->update($validatedData,201);
 
     return response()->json($propertyType);
 }
