@@ -12,14 +12,20 @@ use Illuminate\Http\Request;
 class PropertyKpiController extends Controller
 {
     // Fetch KPIs for a listing
-    public function show($listing_id)
-    {
-        $kpi = PropertyKpi::where('listing_id', $listing_id)->get();
-        if (!$kpi) {
-            return response()->json(['message' => 'KPIs not found'], 404);
-        }
-        return response()->json($kpi);
-    }
+    // public function show($listing_id)
+    // {
+    //     $kpi = PropertyKpi::where('listing_id', $listing_id)->get();
+        
+
+
+    //     if (!$kpi) {
+    //         return response()->json(['message' => 'KPIs not found'], 404);
+    //     }
+    //     return response()->json($kpi);
+    // }
+
+
+    
 
 
     public function getAcceptedOfferPercentage($listing_id)
@@ -30,8 +36,7 @@ class PropertyKpiController extends Controller
             DB::raw('SUM(CASE WHEN status = "Accepted" THEN 1 ELSE 0 END) as accepted_offers'),
             DB::raw('(SUM(CASE WHEN status = "Accepted" THEN 1 ELSE 0 END) / COUNT(listing_id)) * 100 as accepted_percentage')
         )
-        ->where('listing_id', $listing_id)
-        ->first();
+        ->where('listing_id', $listing_id);
 
         $allOffers = DB::table('offers')
         ->where('listing_id', $listing_id)

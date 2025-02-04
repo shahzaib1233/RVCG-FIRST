@@ -722,10 +722,10 @@ public function show_single_Status($id)
 
 
 
-public function gdrpAggrement_temp(Request $request)
+public function files(Request $request)
 {
     $request->validate([
-    'gdrp_image' => 'required|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
+    'files' => 'required|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
     ]);
 
     if ($request->hasFile('gdrp_image')) {

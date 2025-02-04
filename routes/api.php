@@ -44,7 +44,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     // Delete a specific listing
     Route::delete('/listings/{id}', [ListingController::class, 'destroy']);
     //gdrp temp image store
-    Route::post('/gdrpAggrement_temp', [ListingController::class,'gdrpAggrement_temp']);
+    Route::post('/files_temp', [ListingController::class,'gdrpAggrement_temp']);
     //listing image store
     
 
