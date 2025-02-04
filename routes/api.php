@@ -42,6 +42,11 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::put('/listings/{id}', [ListingController::class, 'update']);
     // Delete a specific listing
     Route::delete('/listings/{id}', [ListingController::class, 'destroy']);
+    //gdrp temp image store
+    Route::post('/gdrpAggrement_temp', [ListingController::class,'gdrpAggrement_temp']);
+    //listing image store
+    
+
 
 
     //List of Packages
@@ -94,6 +99,8 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/messages/{userId}', [MessagesController::class, 'getConversationMessages']);   
      // Get chat messages
     Route::post('/messages', [MessagesController::class, 'sendMessage']);  
+    // Get All Messages for admin only
+    Route::get('/getAllConversations', [MessagesController::class, 'getAllConversations']);
 
 
 

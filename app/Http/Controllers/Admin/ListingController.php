@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers\admin;
+use App\Models\admin\ListingMedia;
 use App\Models\admin\propertyFeatures;
 use App\Models\admin\PropertyStatus;
 use Illuminate\Support\Facades\Auth;
@@ -55,7 +56,7 @@ class ListingController extends Controller
     
         $validatedData = $request->validate([
             'title' => 'required|string',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'city_id' => 'required|exists:cities,id',
             'country_id' => 'required|exists:countries,id',
             'property_type_id' => 'required|exists:property_types,id',
@@ -89,12 +90,100 @@ class ListingController extends Controller
             'gdrp_agreement' => 'nullable|string',
             'other_features' => 'nullable|array',
             'other_features.*' => 'exists:other_features,id', 
+            'gdrp_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
+            // 'Listing_media' => 'nullable|array',
+            'Listing_media.*' => 'file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
+
         ]);
+              
     
         $user_id = Auth::id();
+        
     
         $listing = Listing::create(array_merge($validatedData, ['user_id' => $user_id]));
     
+       
+        if($listing)
+        {
+            if($request->file('gdrp_image'))
+            {
+                $image = $request->file('gdrp_image');
+                $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $image->move(public_path('uploads/Listings/Image/gdrp'), $imageName);
+                $imagepath = 'uploads/Listings/Image/gdrp/' . $imageName;;
+                $listing->gdrp_agreement = $imagepath;
+                $listing->save();
+            }
+
+
+          
+        }
+
+        // if ($request->hasFile('Listing_media')) {
+        //     foreach ($request->file('Listing_media') as $file) {
+        //         dd($file);
+
+        //         // Ensure the file is valid
+        //         if ($file->isValid()) {
+        //             // Generate a unique name for the file
+        //             $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                    
+        //             // Move the file to the uploads directory
+        //             $file->move(public_path('uploads/Listings/Image'), $fileName);
+                    
+        //             // Save file path to the database
+        //             ListingMedia::create([
+        //                 'listing_id' => $listing->id,
+        //                 'file_name' => $fileName,
+        //                 'file_url' => 'uploads/Listings/Image/' . $fileName,
+        //                 'media_type' => $file->getClientMimeType(),
+        //             ]);
+        //         }
+        //     }
+        // }
+        
+
+        if ($request->hasFile('Listing_media')) {
+            // Check if it's an array of files or a single file
+            $files = $request->file('Listing_media');  // this could be an array or a single file
+        
+            // Check if it's an array (multiple files)
+            if (is_array($files)) {
+                // dd($files);
+                foreach ($files as $file) {
+                    if ($file->isValid()) {
+                        
+                        $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                        $file->move(public_path('uploads/Listings/Image'), $fileName);
+        
+                        ListingMedia::create([
+                            'listing_id' => $listing->id,
+                            'file_name' => $fileName,
+                            'file_url' => 'uploads/Listings/Image/' . $fileName,
+                            'media_type' => $file->getClientMimeType(),
+                        ]);
+                    }
+                }
+            } else {
+                // Handle if only one file is sent
+                if ($files->isValid()) {
+                    
+                    $fileName = time() . '_' . uniqid() . '.' . $files->getClientOriginalExtension();
+                    $files->move(public_path('uploads/Listings/Image'), $fileName);
+        
+                    ListingMedia::create([
+                        'listing_id' => $listing->id,
+                        'file_name' => $fileName,
+                        'file_url' => 'uploads/Listings/Image/' . $fileName,
+                        'media_type' => $files->getClientMimeType(),
+                    ]);
+                }
+            }
+        } else {
+            dd('No files received');
+        }
+                
+        
         if ($listing) {
             if ($request->has('other_features') && count($request->other_features) > 0) {
                 $propertyFeatures = [];
@@ -225,8 +314,9 @@ class ListingController extends Controller
             'zip_code' => 'nullable|string',
             'area' => 'nullable|string',
             'gdrp_agreement' => 'nullable|string',
-            'other_features' => 'nullable|array', // For storing features
-            'other_features.*' => 'exists:other_features,id|integer', // Ensure each ID is valid and exists
+            'other_features' => 'nullable|array', 
+            'other_features.*' => 'exists:other_features,id|integer',
+            'gdrp_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
     
         ]);
 
@@ -238,6 +328,25 @@ class ListingController extends Controller
                 'error' => 'Listing not found.'
             ], 404); // Not found error code
         }
+
+
+        if ($request->hasFile('gdrp_image')) {
+            $image = $request->file('gdrp_image');
+            $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension(); // Adding uniqid for uniqueness
+            $imagePath = public_path('uploads/Listings/Image');
+            
+            // Ensure the directory exists
+            if (!file_exists($imagePath)) {
+                mkdir($imagePath, 0775, true); // Create directory if it doesn't exist
+            }
+    
+            // Move the image to the uploads folder
+            $image->move($imagePath, $imageName);
+    
+            // Update the gdrp_agreement path in the database
+            $listing->gdrp_agreement = 'uploads/Listings/Image/' . $imageName;
+        }
+
         $listing->update(array_merge($validatedData, ['user_id' => $user_id]));
         // if ($request->has('other_features') && count($request->other_features) > 0) {
         //     // Filter only valid feature IDs
@@ -472,21 +581,20 @@ public function show_single_Status($id)
 
 
 
-public function image(Request $request)
+public function gdrpAggrement_temp(Request $request)
 {
     $request->validate([
-'image' => 'required|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
+    'gdrp_image' => 'required|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
     ]);
 
-    // Handle image upload
-    if ($request->hasFile('image')) {
-        $image = $request->file('image');
-        $imageName = time() . '_' . $image->getClientOriginalName(); // Generate unique filename
-        $image->move(public_path('uploads/Listings/Image'), $imageName); // Save in the specified folder
+    if ($request->hasFile('gdrp_image')) {
+        $image = $request->file('gdrp_image');
+        $imageName = time() . '_' . $image->getClientOriginalName(); 
+        $image->move(public_path('uploads/Listings/temp'), $imageName); 
 
         return response()->json([
             'message' => 'Image uploaded successfully',
-            'image_path' => url('uploads/Listings/Image/' . $imageName), // Return the accessible image URL
+            'image_path' => url('uploads/Listings/temp/' . $imageName), 
         ], 200);
     }
 

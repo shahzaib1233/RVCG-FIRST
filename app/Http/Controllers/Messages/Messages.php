@@ -131,19 +131,50 @@ class Messages extends Controller
         ], 200); // HTTP status code 200
     }
 
-    // Fetch chat contacts (latest messages between each user pair)
+
+    public function getConversationMessages(Request $request, $id)
+    {
+        
+    
+        $fromUserId = Auth::id(); 
+        $toUserId = $id;    
+        $messages = Message::where(function ($query) use ($fromUserId, $toUserId) {
+                $query->where('from_user_id', $fromUserId)
+                      ->where('to_user_id', $toUserId);
+            })
+            ->orWhere(function ($query) use ($fromUserId, $toUserId) {
+                $query->where('from_user_id', $toUserId)
+                      ->where('to_user_id', $fromUserId);
+            })
+            ->orderBy('created_at', 'desc') 
+            ->get();
+    
+        if ($messages->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No conversation messages found between these users.',
+            ], 404);
+        }
+    
+        return response()->json([
+            'success' => true,
+            'data' => $messages,
+        ], 200);
+    }
+
+
+    
+
     public function getChatContacts()
     {
-        $userId = Auth::id(); // Get the authenticated user's ID
+        $userId = Auth::id(); 
 
-        // If user is not logged in, return unauthorized error
         if (!$userId) {
             return response()->json([
                 'error' => 'Unauthorized. Please log in.',
-            ], 401); // HTTP status code 401
+            ], 401); 
         }
 
-        // Fetch the latest message between each user pair for the authenticated user
         $messages = DB::table('messages')
             ->select(
                 DB::raw('LEAST(messages.from_user_id, messages.to_user_id) AS user1'),
@@ -170,45 +201,53 @@ class Messages extends Controller
     }
 
     // Fetch all messages in a conversation (for normal users and admins)
-    public function getConversationMessages(Request $request,$id)
+   
+    public function getAllConversations()
     {
-        // Validate the request to ensure both user IDs are provided
-        $request->validate([
-            'to_user_id' => 'required|exists:users,id', // Recipient must exist
-        ]);
-
-        $fromUserId = Auth::id(); // Get the authenticated user's ID
-        $toUserId = $request->to_user_id; // Get the recipient's ID
-
-        // Fetch the conversation messages between the two users
-        $messages = Message::where(function ($query) use ($fromUserId, $toUserId) {
-                $query->where('from_user_id', $fromUserId)
-                      ->where('to_user_id', $toUserId);
-            })
-            ->orWhere(function ($query) use ($fromUserId, $toUserId) {
-                $query->where('from_user_id', $toUserId)
-                      ->where('to_user_id', $fromUserId);
-            })
-            ->orderBy('created_at', 'desc') // Sort messages by ascending creation date
+        // Ensure only admins can access this
+        if (Auth::check() && Auth::user()->role !== 'admin') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only admins can view this.',
+            ], 403);
+        }
+    
+        // Fetch distinct conversations with the latest message
+        $conversations = Message::selectRaw(
+                'LEAST(from_user_id, to_user_id) as user1, 
+                 GREATEST(from_user_id, to_user_id) as user2, 
+                 MAX(id) as latest_message_id'
+            )
+            ->groupBy('user1', 'user2')
+            ->orderBy('latest_message_id', 'desc') // Show latest messages first
             ->get();
-
+    
+        // Attach the latest message text & timestamp
+        foreach ($conversations as $conversation) {
+            $latestMessage = Message::where('id', $conversation->latest_message_id)->first();
+            $conversation->latest_message = $latestMessage->message ?? 'No messages yet';
+            $conversation->timestamp = $latestMessage->created_at ?? null;
+        }
+    
         return response()->json([
             'success' => true,
-            'data' => $messages,
-        ], 200); // HTTP status code 200
+            'data' => $conversations,
+        ], 200);
     }
+    
 
-    // Fetch all chat conversations for admin (summary view)
-    public function getAdminChats()
+
+
+
+
+     public function getAdminChats()
     {
-        // Ensure the user is an admin
-        if (!Auth::user()->is_admin) {
+        if (Auth::check() && Auth::user()->role !== 'admin') {
             return response()->json([
                 'error' => 'Unauthorized. Only admins can view this.',
-            ], 403); // HTTP status code 403 for forbidden access
+            ], 403);
         }
 
-        // Fetch all chat conversations between users for admins
         $allChats = DB::table('messages')
             ->select(
                 DB::raw('LEAST(messages.from_user_id, messages.to_user_id) AS user1'),
