@@ -30,6 +30,8 @@ Route::put('User/update/{id}',[AuthController::class,'update'])->middleware('aut
 
 
 Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+
+    Route::get('show_single_user/{id}', [AuthController::class, 'show_single_user']); // Get the authenticated user
     // List all listings
     Route::get('/listings', [ListingController::class, 'index']);  
 

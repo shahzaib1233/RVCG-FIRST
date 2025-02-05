@@ -302,17 +302,16 @@ class AuthController extends Controller
    
 public function sendTestEmail()
 {
-    $to = "shahzaibimtiazalone@gmail.com";  // Receiver email address
-    $subject = 'Welcome to Rvcg First';  // Email subject
+    $to = "shahzaibimtiazalone@gmail.com";  
+    $subject = 'Welcome to Rvcg First'; 
 
-    // Static HTML message content
     $messageContent = '<h1>Hello Shahzaib Imtiaz</h1><p>Thank you for joining our platform. You can get amazing properties and much more here!</p>';
 
     // Send email
     Mail::send([], [], function ($message) use ($to, $subject, $messageContent) {
-        $message->to($to)  // Receiver email
-                ->subject($subject)  // Subject of the email
-                ->html($messageContent);  // Static content as HTML
+        $message->to($to)  
+                ->subject($subject)  
+                ->html($messageContent);  
     });
 
     return response()->json(['message' => 'Test email sent successfully'], 200);
@@ -382,31 +381,28 @@ public function sendTestEmail()
 
     public function Register(Request $request)
 {
-    // Validate the input fields
     $fields = $request->validate([
         'name' => 'required|max:255',
         'email' => 'required|email|unique:users',
         'password' => 'required|confirmed',
         'phone_number' => 'nullable|string',
         'address' => 'nullable|string',
-        'social_media_profiles' => 'nullable|array|max:3', // Max 3 social links
-        'social_media_profiles.*' => 'url', // Validate each as a valid URL
-        'referral_codes' => 'nullable|array|max:3', // Max 3 referral codes
-        'referral_codes.*' => 'exists:users,referral_code', // Validate referral codes exist
+        'social_media_profiles' => 'nullable|array|max:3', 
+        'social_media_profiles.*' => 'url', 
+        'referral_codes' => 'nullable|array|max:3', 
+        'referral_codes.*' => 'exists:users,referral_code', 
         'bankruptcy_details' => 'nullable|string',
         'liens_details' => 'nullable|string',
         'contact_email' => 'nullable|email',
         'dob' => 'nullable|date',
         'income_level' => 'nullable|string',
-        'role' => 'nullable|string', // Added role field
-        'email_verified_at' => 'nullable|date', // Added email_verified_at
-        'is_active' => 'nullable|boolean', // Added is_active field
+        'role' => 'nullable|string',
+        'email_verified_at' => 'nullable|date',
+        'is_active' => 'nullable|boolean',
     ]);
 
-    // Generate a unique referral code for the new user
-    $referralCode = Str::upper(Str::random(10)); // Example: "ABC123XYZ"
+    $referralCode = Str::upper(Str::random(10)); 
 
-    // Fetch and validate the provided referral codes
     $referrers = [];
     if (!empty($fields['referral_codes'])) {
         $referrers = User::whereIn('referral_code', $fields['referral_codes'])->pluck('id')->toArray();
@@ -641,6 +637,21 @@ public function update(Request $request, $id)
 
    
 
+    
+
+    public function show_single_user($id)
+    {
+        $user = Auth::user();
+        if($user->role === "admin")
+        {
+            $user = User::find($id);
+            return response()->json($user);
+        }
+        else
+        {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+    }
     
 
 

@@ -37,12 +37,14 @@
                         EmailCampaign::create([
                             'user_id' => $user->id,
                             'message' => $message,
-                            'status' => 'sent'
+                            'status' => 'sent',
+                            'subject' => $subject,
                         ]);
                     } catch (\Exception $e) {
                         EmailCampaign::create([
                             'user_id' => $user->id,
                             'message' => $message,
+                            'subject' => $subject,
                             'status' => 'failed'
                         ]);
                     }
@@ -169,6 +171,11 @@
                 'status' => $email_campaigns->status,
                 'created_at' => $email_campaigns->created_at,
                 'updated_at' => $email_campaigns->updated_at,
+                'user' => [
+                'id' => $email_campaigns->user->id,
+                'name' => $email_campaigns->user->name,
+                'email' => $email_campaigns->user->email,
+            ]
             ]
         ], 200);
     }
