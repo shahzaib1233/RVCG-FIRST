@@ -390,7 +390,7 @@ public function sendTestEmail()
         'social_media_profiles' => 'nullable|array|max:3', 
         'social_media_profiles.*' => 'url', 
         'referral_codes' => 'nullable|array|max:3', 
-        'referral_codes.*' => 'exists:users,referral_code', 
+        'referral_codes.*' => 'string', // Ensure it's a string
         'bankruptcy_details' => 'nullable|string',
         'liens_details' => 'nullable|string',
         'contact_email' => 'nullable|email',
@@ -404,9 +404,21 @@ public function sendTestEmail()
     $referralCode = Str::upper(Str::random(10)); 
 
     $referrers = [];
+    // if (!empty($fields['referral_codes'])) {
+    //     $referrers = User::whereIn('referral_code', $fields['referral_codes'])->pluck('id')->toArray();
+    // }
+
     if (!empty($fields['referral_codes'])) {
         $referrers = User::whereIn('referral_code', $fields['referral_codes'])->pluck('id')->toArray();
+        
+        // Check if any referral codes were not found
+        if (count($referrers) !== count($fields['referral_codes'])) {
+            return response()->json([
+                'message' => 'One or more referral codes are incorrect.',
+            ], 400);
+        }
     }
+    
 
     // Create the user
     $user = User::create([

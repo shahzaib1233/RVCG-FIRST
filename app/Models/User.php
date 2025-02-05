@@ -37,6 +37,7 @@ class User extends Authenticatable
         'income_level', // Add income level
         'referrers',
         'reward_points',
+        'is_active',
     ];
     protected $casts = [
         'social_media_profiles' => 'array', // Social profiles stored as JSON

@@ -12,17 +12,17 @@ use Illuminate\Http\Request;
 class PropertyKpiController extends Controller
 {
     // Fetch KPIs for a listing
-    // public function show($listing_id)
-    // {
-    //     $kpi = PropertyKpi::where('listing_id', $listing_id)->get();
+    public function show($listing_id)
+    {
+        $kpi = PropertyKpi::where('listing_id', $listing_id)->get();
         
 
 
-    //     if (!$kpi) {
-    //         return response()->json(['message' => 'KPIs not found'], 404);
-    //     }
-    //     return response()->json($kpi);
-    // }
+        if (!$kpi) {
+            return response()->json(['message' => 'KPIs not found'], 404);
+        }
+        return response()->json($kpi);
+    }
 
 
     

@@ -10,7 +10,7 @@ class EmailCampaign extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'message', 'status'];
+    protected $fillable = ['user_id', 'message', 'status' , 'subject'];
 
     public function user()
     {
