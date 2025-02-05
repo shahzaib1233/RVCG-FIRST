@@ -400,6 +400,7 @@ public function sendTestEmail()
         'income_level' => 'nullable|string',
         'role' => 'nullable|string', // Added role field
         'email_verified_at' => 'nullable|date', // Added email_verified_at
+        'is_active' => 'nullable|boolean', // Added is_active field
     ]);
 
     // Generate a unique referral code for the new user
@@ -428,6 +429,7 @@ public function sendTestEmail()
         'income_level' => $fields['income_level'] ?? null,
         'role' => $fields['role'] ?? 'user', // Default role as 'user'
         'email_verified_at' => $fields['email_verified_at'] ?? null,
+        'is_active'=> $fields['is_active'] ?? true, // Default is_active as true
     ]);
 
     // Optionally reward referrers
@@ -501,6 +503,7 @@ public function update(Request $request, $id)
         'password' => 'nullable|confirmed',
         'role' => 'nullable|string', // Allow updating role
         'email_verified_at' => 'nullable|date', // Allow updating email verification
+        'is_active' => 'nullable|boolean', // Allow updating is_active
     ]);
 
     // Update user fields conditionally
@@ -537,6 +540,14 @@ public function update(Request $request, $id)
                 'status' => 401
             ], 401);
         }
+
+        if (!$user->is_active) {
+            return response()->json([
+                'message' => 'Your account is inactive. Please contact support.',
+                'status' => 403
+            ], 403);
+        }
+
 
         UserLog::create([
             'user_id' => $user->id,
@@ -601,6 +612,31 @@ public function update(Request $request, $id)
                     ->get();
 
         return response()->json($users);
+    }
+
+
+    public function UserLog()
+    {
+        $user = Auth::user();
+        if($user->role === "admin")
+        {
+            $userlog = UserLog::with('user')->get(); 
+            return response()->json($userlog);
+    }
+    else
+    {
+        return response()->json(['message' => 'Unauthorized'], 403);
+
+    }
+    }
+
+    public function UserLog_single($id)
+    {
+        $user = Auth::user();
+        
+        $userlog = UserLog::with('user')->where('user_id', $id)->get();
+        return response()->json($userlog);
+    
     }
 
    

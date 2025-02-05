@@ -722,14 +722,15 @@ public function show_single_Status($id)
 
 
 
-public function files(Request $request)
+public function gdrpAggrement_temp(Request $request)
 {
     $request->validate([
     'files' => 'required|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
     ]);
 
-    if ($request->hasFile('gdrp_image')) {
-        $image = $request->file('gdrp_image');
+    
+    if ($request->hasFile('files')) {
+        $image = $request->file('files');
         $imageName = time() . '_' . $image->getClientOriginalName(); 
         $image->move(public_path('uploads/Listings/temp'), $imageName); 
 

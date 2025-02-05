@@ -150,8 +150,8 @@
     
     public function showemailrecord($id)
     {
-        $email_campaigns = EmailCampaign::find($id);
-    
+        $email_campaigns = EmailCampaign::with('user')->find($id);
+
         if (!$email_campaigns) {
             return response()->json([
                 'message' => 'Not Found'

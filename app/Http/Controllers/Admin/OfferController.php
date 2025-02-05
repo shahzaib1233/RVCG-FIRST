@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\admin;
 
 use App\Models\admin\Offer;
+use App\Models\admin\OfferHistory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
@@ -25,6 +26,17 @@ class OfferController extends Controller
     public function show($id)
     {
         $offer = Offer::with(['listing:id,title', 'user:id,name'])->find($id);
+
+        if (!$offer) {
+            return response()->json(['message' => 'Offer not found'], 404);
+        }
+
+        return response()->json($offer, 200);
+    }
+
+    public function show_offer_listing_wise($id)
+    {
+        $offer = Offer::with(['listing:id,title', 'user:id,name'])->where('listing_id',$id)->get();
 
         if (!$offer) {
             return response()->json(['message' => 'Offer not found'], 404);
@@ -106,7 +118,6 @@ class OfferController extends Controller
     }
 
 
-    // Calculate offer conversion rate for a specific property
 public function offerConversionRate($listing_id)
 {
     $totalOffers = Offer::where('listing_id', $listing_id)->count();
@@ -130,6 +141,51 @@ public function offerConversionRate($listing_id)
 
     return response()->json(['conversion_rate' => $conversionRate], 200);
 }
+
+
+
+
+
+
+
+//offer history 
+public function createOfferHistory(Request $request, $offer_id)
+{
+    $validatedData = $request->validate([
+        'user_id' => 'required|exists:users,id',
+        'listing_owner_id' => 'required|exists:users,id',
+        'negotiation_comments' => 'required|string',
+        'negotiated_price' => 'nullable|numeric',
+        'status' => 'required|string|in:pending,accepted,rejected',
+    ]);
+
+    $validatedData['offer_id'] = $offer_id; // Set the offer_id from URL
+    $validatedData['negotiated_price'] = $validatedData['negotiated_price'] ?? 0;
+
+    $offerHistory = OfferHistory::create($validatedData);
+
+    if ($offerHistory) {
+        return response()->json([
+            'message' => 'Offer negotiation history created successfully',
+            'offer_history' => $offerHistory
+        ], 201);
+    } else {
+        return response()->json(['message' => 'Failed to create offer negotiation history'], 500);
+    }
+}
+
+
+public function showOfferHistory($offer_id)
+{
+    $offerHistory = OfferHistory::with(['user', 'listingOwner'])->where('offer_id', $offer_id)->get();
+
+    if ($offerHistory->isEmpty()) {
+        return response()->json(['message' => 'No negotiation history found'], 404);
+    }
+
+    return response()->json($offerHistory, 200);
+}
+
 
 
 }

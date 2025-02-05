@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+
+use App\Models\Admin\EmailCampaign;
 use App\Models\admin\Offer;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -73,6 +75,10 @@ public function posts()
 public function offers()
 {
     return $this->hasMany(Offer::class, 'user_id');
+}
+public function emailCampaigns()
+{
+    return $this->hasMany(EmailCampaign::class, 'user_id');
 }
 
 }

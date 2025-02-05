@@ -74,6 +74,14 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
     // Show a specific offer
     Route::get('/offers/{id}', [OfferController::class, 'show']);
+    //show offer listing id wise
+    Route::get('/offers/listing/{id}', [OfferController::class, 'show_offer_listing_wise']);
+
+    //offer history create
+    Route::post('/offer/{offer_id}/history', [OfferController::class, 'createOfferHistory']);
+    //show offer history
+    Route::get('/offer/{offer_id}/history', [OfferController::class, 'showOfferHistory']);
+
     // Create a new offer
     Route::post('/offers', [OfferController::class, 'store']);
     // Update an existing offer
@@ -253,6 +261,11 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
     //show accepted offer percentage
     Route::get('offer-accept/{id}', [PropertyKpiController::class,'getAcceptedOfferPercentage']);
     
+
+    Route::get('/user-logs', [AuthController::class, 'UserLog']);       
+
+    // Route to get a single user log (any authenticated user)
+    Route::get('/user-logs/{id}', [AuthController::class, 'UserLog_single']);
 
 });
 
