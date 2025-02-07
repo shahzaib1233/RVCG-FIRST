@@ -652,15 +652,10 @@ public function update(Request $request, $id)
     public function show_single_user($id)
     {
         $user = Auth::user();
-        if($user->role === "admin")
-        {
+      
             $user = User::find($id);
             return response()->json($user);
-        }
-        else
-        {
-            return response()->json(['message' => 'Unauthorized'], 403);
-        }
+       
     }
     
 
