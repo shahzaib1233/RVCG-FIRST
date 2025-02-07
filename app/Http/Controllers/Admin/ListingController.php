@@ -33,16 +33,38 @@ class ListingController extends Controller
     // }
 
 
-    public function index()
-{
-    $listings = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])->orderBy('id', 'desc')->get();
+//     public function index()
+// {
+//     $listings = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])->orderBy('id', 'desc')->get();
     
+//     $listings->transform(function ($listing) {
+//         $listing->country_name = $listing->country->country_name; // Ensure 'country_name' is accessed correctly
+//         return $listing;
+//     });
+
+//     return response()->json($listings, 201);
+// }
+
+public function index()
+{
+    // Check if the authenticated user is an admin
+    if (Auth::check() && Auth::user()->role === 'admin') {
+        $listings = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+            ->orderBy('id', 'desc')
+            ->get();
+    } else {
+        $listings = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+            ->where('user_id', Auth::id()) // Filter by logged-in user's ID
+            ->orderBy('id', 'desc')
+            ->get();
+    }
+
     $listings->transform(function ($listing) {
         $listing->country_name = $listing->country->country_name; // Ensure 'country_name' is accessed correctly
         return $listing;
     });
 
-    return response()->json($listings, 201);
+    return response()->json($listings, 200);
 }
 
 
@@ -456,10 +478,10 @@ class ListingController extends Controller
 
     // Handle GDPR Image Update
     if ($request->hasFile('gdrp_image')) {
-        // Delete old GDPR image if exists
-        if ($listing->gdrp_agreement && file_exists(public_path($listing->gdrp_agreement))) {
-            unlink(public_path($listing->gdrp_agreement));
-        }
+        // // Delete old GDPR image if exists
+        // if ($listing->gdrp_agreement && file_exists(public_path($listing->gdrp_agreement))) {
+        //     unlink(public_path($listing->gdrp_agreement));
+        // }
 
         $image = $request->file('gdrp_image');
         $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
@@ -467,13 +489,10 @@ class ListingController extends Controller
         
         $image->move(public_path($imagePath), $imageName);
 
-        // Update the GDPR agreement path in the database
         $listing->gdrp_agreement = $imagePath . $imageName;
     }
 
-    // Handle Listing Media Updates (Images & Files)
     if ($request->hasFile('Listing_media')) {
-        // Delete old media before updating (optional, depends on use case)
         $oldMedia = ListingMedia::where('listing_id', $id)->get();
         foreach ($oldMedia as $media) {
             if (file_exists(public_path($media->file_url))) {

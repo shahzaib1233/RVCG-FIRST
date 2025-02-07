@@ -13,10 +13,25 @@ class LeadController extends Controller
      * Get all leads.
      */
     public function index()
-    {
-        $leads = Lead::with(['addedBy', 'assignedTo','leadSource', 'leadType', 'leadHistories'])->get();
-        return response()->json($leads);
+{
+    $user = Auth::user();
+
+    if ($user->role === "admin") {
+        $leads = Lead::with(['addedBy', 'assignedTo', 'leadSource', 'leadType', 'leadHistories'])
+            ->orderBy('id', 'desc')
+            ->get();
+    } else {
+        $leads = Lead::with(['addedBy', 'assignedTo', 'leadSource', 'leadType', 'leadHistories'])
+            ->where(function ($query) use ($user) {
+                $query->where('assigned_to', $user->id)
+                      ->orWhere('added_by', $user->id);
+            })
+            ->orderBy('id', 'desc')
+            ->get();
     }
+
+    return response()->json($leads);
+}
 
     /**
      * Store a new lead.
@@ -136,9 +151,6 @@ class LeadController extends Controller
         return response()->json(['message' => 'Lead assigned successfully', 'lead' => $lead]);
     }
 
-    /**
-     * Add lead history (Contact details, Follow-up, etc.).
-     */
     public function addHistory(Request $request, $lead_id)
     {
         $validatedData = $request->validate([

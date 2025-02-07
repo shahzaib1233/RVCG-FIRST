@@ -51,7 +51,7 @@ class PropertyKpiController extends Controller
             )
             ->where('kpi.listing_id', $listing_id)
             ->groupBy('kpi.id', 'kpi.listing_id')
-            ->first(); // Get a single result instead of a collection
+            ->first(); 
     
         if (!$data) {
             return response()->json(['message' => 'Data not found'], 404);

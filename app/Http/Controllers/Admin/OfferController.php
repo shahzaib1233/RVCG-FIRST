@@ -7,20 +7,28 @@ use App\Models\admin\OfferHistory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class OfferController extends Controller
 {
     // Get all offers
-    public function index()
-    {
+   public function index()
+{
+    if (Auth::check() && Auth::user()->role === 'admin') {
         $offers = Offer::with(['listing:id,title', 'user:id,name'])->get();
-
-        if ($offers->isEmpty()) {
-            return response()->json(['message' => 'No offers found'], 404);
-        }
-
-        return response()->json($offers, 200);
+    } else {
+        $offers = Offer::with(['listing:id,title', 'user:id,name'])
+                       ->where('user_id', Auth::id())
+                       ->get();
     }
+
+    if ($offers->isEmpty()) {
+        return response()->json(['message' => 'No offers found'], 404);
+    }
+
+    return response()->json($offers, 200);
+}
+
 
     // Show a specific offer
     public function show($id)
@@ -119,7 +127,7 @@ class OfferController extends Controller
 
 
 public function offerConversionRate($listing_id)
-{
+  {
     $totalOffers = Offer::where('listing_id', $listing_id)->count();
     if ($totalOffers == 0) {
         return response()->json([

@@ -8,11 +8,15 @@
     use App\Models\User;
     use Illuminate\Http\Request;
     use Illuminate\Support\Facades\Mail;
+    use Illuminate\Support\Facades\Auth;
 
     class EmailCampaignController extends Controller
     {
         public function sendEmailCampaign(Request $request)
         {
+            if (Auth::check() && Auth::user()->role !== 'admin') {
+                return response()->json(['message' => 'Unauthorized.'], 403);
+            }
             // Get the array of user IDs from the front end
             $userIds = $request->input('user_id'); 
             $message = $request->input('message'); 
@@ -59,7 +63,10 @@
 
         public function getemailrecord()
         {
-            $email_campaigns = EmailCampaign::with('user')->get();
+            if (Auth::check() && Auth::user()->role !== 'admin') {
+                return response()->json(['message' => 'Unauthorized.'], 403);
+            }
+            $email_campaigns = EmailCampaign::with('user')->orderBy('id', 'desc')->get();
         
             if ($email_campaigns->isEmpty()) {
                 return response()->json([

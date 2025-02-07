@@ -615,8 +615,8 @@ public function update(Request $request, $id)
 
     public function getUsersWhoseReferralCodeWasUsed()
     {
-        $users = User::whereNotNull('referrers')  // Ensure referrers column is not null
-                    ->whereJsonLength('referrers', '>', 0)  // Ensure referrers array is not empty
+        $users = User::whereNotNull('referrers')  
+                    ->whereJsonLength('referrers', '>', 0)  
                     ->get();
 
         return response()->json($users);
@@ -626,16 +626,14 @@ public function update(Request $request, $id)
     public function UserLog()
     {
         $user = Auth::user();
-        if($user->role === "admin")
-        {
-            $userlog = UserLog::with('user')->get(); 
-            return response()->json($userlog);
-    }
-    else
-    {
-        return response()->json(['message' => 'Unauthorized'], 403);
 
-    }
+        if ($user->role === "admin") {
+            $userlog = UserLog::with('user')->get();
+        } else {
+            $userlog = UserLog::with('user')->where('user_id', $user->id)->get();
+        }
+
+        return response()->json($userlog);
     }
 
     public function UserLog_single($id)
