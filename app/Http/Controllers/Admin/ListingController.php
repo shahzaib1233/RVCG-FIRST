@@ -762,4 +762,31 @@ public function gdrpAggrement_temp(Request $request)
     return response()->json(['message' => 'No image uploaded'], 400);
 }
 
+
+
+
+
+
+
+
+
+
+
+
+public function Get_High_Roi_zone()
+{
+    $highROIListings = Listing::where(DB::raw('CAST(roi AS DECIMAL(10,2))'), '>', 10)
+    ->where(DB::raw('CAST(cap_rate AS DECIMAL(10,2))'), '>', 8)
+    ->where(DB::raw('CAST(crime_rate AS DECIMAL(10,2))'), '<', 30)
+    ->orderBy('roi', 'DESC')
+    ->get();
+   
+      
+    if ($highROIListings->isEmpty()) {
+        return response()->json(['message' => 'No high ROI zones found'], 404);
+    }
+
+    return response()->json($highROIListings);
+}
+
 }

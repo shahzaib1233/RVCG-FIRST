@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Models\Admin\EmailCampaign;
 use App\Models\admin\Offer;
+use App\Models\admin\Vendor;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -81,5 +82,14 @@ public function emailCampaigns()
 {
     return $this->hasMany(EmailCampaign::class, 'user_id');
 }
+
+
+
+
+public function vendor()
+{
+    return $this->hasOne(Vendor::class);
+}
+
 
 }

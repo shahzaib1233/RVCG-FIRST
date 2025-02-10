@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\LeadController;
 use App\Http\Controllers\Admin\LeadSourceController;
 use App\Http\Controllers\Admin\LeadTypeController;
 use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Admin\EmailCampaignController;
 use App\Http\Controllers\Admin\PackagesItemsController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Admin\PropertyKpiController;
+use App\Http\Controllers\PaymentController;
 
 Route::apiResource('post', PostController::class);
 Route::post('register',[AuthController::class,'register']);
@@ -49,6 +51,13 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/files_temp', [ListingController::class,'gdrpAggrement_temp']);
     //listing image store
     
+
+
+
+
+    //High ROI Zones listings
+    Route::get('highroizone', [ListingController::class, 'Get_High_Roi_zone']);
+
 
 
 
@@ -268,6 +277,21 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
 
     // Route to get a single user log (any authenticated user)
     Route::get('/user-logs/{id}', [AuthController::class, 'UserLog_single']);
+    
+    //Payment History
+    Route::post('/create-payment-intent', [PaymentController::class, 'createPaymentIntent']);
+
+    //create subscription
+    Route::post('/create-subscription', [PaymentController::class, 'createSubscription']);
+
+
+
+    Route::get('/vendors', [VendorController::class, 'index']);
+    Route::post('/vendors', [VendorController::class, 'store']); 
+    Route::get('/vendors/{id}', [VendorController::class, 'show']);
+    Route::put('/vendors/{id}', [VendorController::class, 'update']); 
+    Route::delete('/vendors/{id}', [VendorController::class, 'destroy']);
+
 
 });
 
@@ -275,6 +299,9 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+
+
 
 
 
