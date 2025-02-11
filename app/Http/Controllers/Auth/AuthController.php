@@ -508,7 +508,7 @@ public function update(Request $request, $id)
         'contact_email' => 'nullable|email',
         'dob' => 'nullable|date',
         'income_level' => 'nullable|string',
-        'password' => 'nullable|confirmed',
+        'password' => 'nullable',
         'role' => 'nullable|string', // Allow updating role
         'email_verified_at' => 'nullable|date', // Allow updating email verification
         'is_active' => 'nullable|boolean', // Allow updating is_active

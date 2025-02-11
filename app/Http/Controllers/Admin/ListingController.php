@@ -115,15 +115,28 @@ public function index()
             'other_features.*' => 'exists:other_features,id', 
             'gdrp_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
             // 'Listing_media' => 'nullable|array',
-            'Listing_media.*' => 'file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
+            'repair_cost' => 'nullable|numeric', // New Validation
+            'wholesale_fee' => 'nullable|numeric', // New Validation
+            'Listing_media.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
 
         ]);
-              
-    
+        $avg_price_per_sq_ft = Listing::where('city_id', $validatedData['city_id'])
+        ->where('property_type_id', $validatedData['property_type_id'])
+        ->where('square_foot', '>', 0)
+        ->avg(DB::raw('price / square_foot'));
+
+    // Calculate ARV directly
+    $arv = $avg_price_per_sq_ft ? ($avg_price_per_sq_ft * $validatedData['square_foot']) : null;
+     
+        if (!empty($validatedData['price']) && !empty($validatedData['square_foot']) && $validatedData['square_foot'] > 0) {
+            $validatedData['price_per_square_feet'] = $validatedData['price'] / $validatedData['square_foot'];
+        } else {
+            $validatedData['price_per_square_feet'] = null;
+        }
         $user_id = Auth::id();
         
     
-        $listing = Listing::create(array_merge($validatedData, ['user_id' => $user_id]));
+        $listing = Listing::create(array_merge($validatedData, ['user_id' => $user_id , 'arv' => $arv]));
     
        
         if($listing)
@@ -138,8 +151,6 @@ public function index()
                 $listing->save();
             }
 
-
-          
         }
 
         // if ($request->hasFile('Listing_media')) {
@@ -202,9 +213,7 @@ public function index()
                     ]);
                 }
             }
-        } else {
-            dd('No files received');
-        }
+        } 
                 
         
         if ($listing) {
@@ -461,10 +470,28 @@ public function index()
         'area' => 'nullable|string',
         'gdrp_agreement' => 'nullable|string',
         'other_features' => 'nullable|array', 
+        'repair_cost' => 'nullable|numeric', 
+        'wholesale_fee' => 'nullable|numeric', 
         'other_features.*' => 'exists:other_features,id|integer',
         'gdrp_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
         'Listing_media.*' => 'file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
     ]);
+
+
+    if (!empty($validatedData['price']) && !empty($validatedData['square_foot']) && $validatedData['square_foot'] > 0) {
+        $validatedData['price_per_square_feet'] = $validatedData['price'] / $validatedData['square_foot'];
+    } else {
+        $validatedData['price_per_square_feet'] = null;
+    }
+
+    $avg_price_per_sq_ft = Listing::where('city_id', $validatedData['city_id'])
+    ->where('property_type_id', $validatedData['property_type_id'])
+    ->where('square_foot', '>', 0)
+    ->avg(DB::raw('price / square_foot'));
+
+    // Calculate ARV directly
+    $arv = $avg_price_per_sq_ft ? ($avg_price_per_sq_ft * $validatedData['square_foot']) : null;
+
 
     $user_id = Auth::id();
     
@@ -519,7 +546,7 @@ public function index()
     }
 
     // Update Listing
-    $listing->update(array_merge($validatedData, ['user_id' => $user_id]));
+    $listing->update(array_merge($validatedData, ['user_id' => $user_id , 'arv' => $arv, ]));
 
     // Update Property Features
     if ($request->has('other_features') && is_array($request->other_features)) {
@@ -609,36 +636,37 @@ public function index()
                 'area_max' => $request->area_max,
             ]);
         }
+            else {
+            $query = Listing::query();
 
-        $query = Listing::query();
+            if ($request->has('price') && $request->price_min) {
+                $query->where('price', '>=', $request->price_min);
+            }
+            
+            // if ($request->has('price_max') && $request->price_max) {
+            //     $query->where('price', '<=', $request->price_max);
+            // }
 
-        if ($request->has('price_min') && $request->price_min) {
-            $query->where('price', '>=', $request->price_min);
+            if ($request->has('city') && $request->city) {
+                $query->where('city_id', '=', $request->city);
+            }
+
+            if ($request->has('area_min') && $request->area_min) {
+                $query->where('square_foot', '>=', $request->area_min);
+            }
+
+            if ($request->has('area_max') && $request->area_max) {
+                $query->where('square_foot', '<=', $request->area_max);
+            }
+
+            if ($request->has('property_type') && $request->property_type) {
+                $query->where('property_type_id', '=', $request->property_type);
+            }
+
+            $properties = $query->paginate(10);
+
+            return response()->json($properties);
         }
-        
-        if ($request->has('price_max') && $request->price_max) {
-            $query->where('price', '<=', $request->price_max);
-        }
-
-        if ($request->has('city') && $request->city) {
-            $query->where('city_id', '=', $request->city);
-        }
-
-        if ($request->has('area_min') && $request->area_min) {
-            $query->where('square_foot', '>=', $request->area_min);
-        }
-
-        if ($request->has('area_max') && $request->area_max) {
-            $query->where('square_foot', '<=', $request->area_max);
-        }
-
-        if ($request->has('property_type') && $request->property_type) {
-            $query->where('property_type_id', '=', $request->property_type);
-        }
-
-        $properties = $query->paginate(10);
-
-        return response()->json($properties);
     }
 
 
