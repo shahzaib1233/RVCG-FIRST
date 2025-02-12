@@ -120,23 +120,30 @@ public function index()
             'Listing_media.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
 
         ]);
+       
+
         $avg_price_per_sq_ft = Listing::where('city_id', $validatedData['city_id'])
         ->where('property_type_id', $validatedData['property_type_id'])
         ->where('square_foot', '>', 0)
         ->avg(DB::raw('price / square_foot'));
 
-    // Calculate ARV directly
     $arv = $avg_price_per_sq_ft ? ($avg_price_per_sq_ft * $validatedData['square_foot']) : null;
-     
-        if (!empty($validatedData['price']) && !empty($validatedData['square_foot']) && $validatedData['square_foot'] > 0) {
-            $validatedData['price_per_square_feet'] = $validatedData['price'] / $validatedData['square_foot'];
-        } else {
-            $validatedData['price_per_square_feet'] = null;
-        }
+
+    // Calculate MOA (Add)
+    $moa = $arv - ($validatedData['repair_cost'] ?? 0) - ($validatedData['wholesale_fee'] ?? 0); // Calculate MOA directly
+
+    if (!empty($validatedData['price']) && !empty($validatedData['square_foot']) && $validatedData['square_foot'] > 0) {
+        $validatedData['price_per_square_feet'] = $validatedData['price'] / $validatedData['square_foot'];
+    } else {
+        $validatedData['price_per_square_feet'] = null;
+    }
+
+
+
         $user_id = Auth::id();
         
     
-        $listing = Listing::create(array_merge($validatedData, ['user_id' => $user_id , 'arv' => $arv]));
+        $listing = Listing::create(array_merge($validatedData, ['user_id' => $user_id , 'arv' => $arv, 'moa' => $moa]));
     
        
         if($listing)
@@ -623,51 +630,57 @@ public function index()
 
     
 
-    public function searchProperties(Request $request)
-    {
+public function searchProperties(Request $request)
+{
+    $query = Listing::query();
 
-        if (Auth::check()) {
-            SearchHistory::create([
-                'user_id' => Auth::id(),
-                'price_min' => $request->price_min,
-                'price_max' => $request->price_max,
-                'city' => $request->city,
-                'area_min' => $request->area_min,
-                'area_max' => $request->area_max,
-            ]);
-        }
-            else {
-            $query = Listing::query();
-
-            if ($request->has('price') && $request->price_min) {
-                $query->where('price', '>=', $request->price_min);
-            }
-            
-            // if ($request->has('price_max') && $request->price_max) {
-            //     $query->where('price', '<=', $request->price_max);
-            // }
-
-            if ($request->has('city') && $request->city) {
-                $query->where('city_id', '=', $request->city);
-            }
-
-            if ($request->has('area_min') && $request->area_min) {
-                $query->where('square_foot', '>=', $request->area_min);
-            }
-
-            if ($request->has('area_max') && $request->area_max) {
-                $query->where('square_foot', '<=', $request->area_max);
-            }
-
-            if ($request->has('property_type') && $request->property_type) {
-                $query->where('property_type_id', '=', $request->property_type);
-            }
-
-            $properties = $query->paginate(10);
-
-            return response()->json($properties);
-        }
+    // Price filter (greater than or equal to price_min)
+    if ($request->has('price_min') && $request->price_min) {
+        $query->where('price', '>=', $request->price_min);
     }
+
+    // Address filter (city_id)
+    if ($request->has('city') && $request->city) {
+        $query->where('city_id', '=', $request->city);
+    }
+
+    // Property type filter (property_type_id)
+    if ($request->has('property_type') && $request->property_type) {
+        $query->where('property_type_id', '=', $request->property_type);
+    }
+
+    // Bedrooms filter (greater than or equal to bedrooms)
+    if ($request->has('bedrooms') && $request->bedrooms) {
+        $query->where('bedrooms', '>=', $request->bedrooms);
+    }
+
+    // Bathrooms filter (greater than or equal to bathrooms)
+    if ($request->has('bathrooms') && $request->bathrooms) {
+        $query->where('bathrooms', '>=', $request->bathrooms);
+    }
+
+    // Square Foot filter (greater than or equal to area_min)
+    if ($request->has('area_min') && $request->area_min) {
+        $query->where('square_foot', '>=', $request->area_min);
+    }
+
+    // Check if user is logged in
+    if (Auth::check()) {
+        // Save search history for logged-in users
+        SearchHistory::create([
+            'user_id' => Auth::id(),
+            'price_min' => $request->price_min,
+            'price_max' => $request->price_max,
+            'city_id' => $request->city,
+            'area_min' => $request->area_min,
+        ]);
+    }
+
+    // Get all the filtered properties (no pagination)
+    $properties = $query->get();
+
+    return response()->json($properties);
+}
 
 
     public function getUserSearchHistory()
