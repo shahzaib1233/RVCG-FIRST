@@ -95,14 +95,12 @@ public function index()
             'school_district' => 'nullable|string',
             'walkability_score' => 'nullable|integer',
             'crime_rate' => 'nullable|numeric',
-            'roi' => 'nullable|numeric',
             'monthly_rent' => 'nullable|numeric',
             'cap_rate' => 'nullable|numeric',
             'address' => 'nullable|string',
             'bedrooms' => 'nullable|integer',
             'bathrooms' => 'nullable|integer',
             'half_bathrooms' => 'nullable|integer',
-            'arv' => 'nullable|numeric',
             'gross_margin' => 'nullable|numeric',
             'is_featured' => 'nullable|in:0,1', 
             'is_approved' => 'nullable|in:0,1', 
@@ -129,8 +127,6 @@ public function index()
 
     $arv = $avg_price_per_sq_ft ? ($avg_price_per_sq_ft * $validatedData['square_foot']) : null;
 
-    // Calculate MOA (Add)
-    $moa = $arv - ($validatedData['repair_cost'] ?? 0) - ($validatedData['wholesale_fee'] ?? 0); // Calculate MOA directly
 
     if (!empty($validatedData['price']) && !empty($validatedData['square_foot']) && $validatedData['square_foot'] > 0) {
         $validatedData['price_per_square_feet'] = $validatedData['price'] / $validatedData['square_foot'];
@@ -138,12 +134,13 @@ public function index()
         $validatedData['price_per_square_feet'] = null;
     }
 
-
+    $moa = $arv - ($validatedData['repair_cost'] ?? 0); 
+    $roi = $arv && $validatedData['price'] ? (($arv - ($validatedData['repair_cost'] ?? 0)) / $validatedData['price']) * 100 : null;
 
         $user_id = Auth::id();
         
     
-        $listing = Listing::create(array_merge($validatedData, ['user_id' => $user_id , 'arv' => $arv, 'moa' => $moa]));
+        $listing = Listing::create(array_merge($validatedData, ['user_id' => $user_id , 'arv' => $arv, 'moa' => $moa , 'roi' => $roi]));
     
        
         if($listing)
