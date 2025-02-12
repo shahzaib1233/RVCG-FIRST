@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\EmailCampaignController;
 use App\Http\Controllers\Admin\PackagesItemsController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Admin\PropertyKpiController;
+use App\Http\Controllers\Admin\SavedPropertyController;
 use App\Http\Controllers\PaymentController;
 
 Route::apiResource('post', PostController::class);
@@ -293,6 +294,16 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
     Route::delete('/vendors/{id}', [VendorController::class, 'destroy']);
 
 
+
+        // Show saved properties based on user role
+        Route::get('/saved-properties', [SavedPropertyController::class, 'savedProperties']);
+    
+        // Add Saved Property
+        Route::post('/saved-properties/add', [SavedPropertyController::class, 'addSavedProperty']);
+    
+        // Delete Saved Property
+        Route::delete('/saved-properties/delete/{id}', [SavedPropertyController::class, 'deleteSavedProperty']);
+    
 });
 
 
