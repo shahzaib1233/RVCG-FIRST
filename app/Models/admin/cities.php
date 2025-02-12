@@ -13,7 +13,7 @@ class Cities extends Model
 
     public function country()
     {
-        return $this->belongsTo(\App\Models\admin\Countries::class, 'country_id');
+        return $this->belongsTo(\App\Models\admin\countries::class, 'country_id');
     }
     
 }
