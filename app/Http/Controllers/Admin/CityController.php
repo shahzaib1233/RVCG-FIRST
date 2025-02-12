@@ -32,7 +32,10 @@ class CityController extends Controller
         $validatedData = $request->validate([
             'city_name' => 'required|string|max:255',
             'country_id' => 'required|exists:countries,id',
+            'latitude' => 'nullable|string|max:50',
+            'longitude' => 'nullable|string|max:50',
         ]);
+        
 
         $city = Cities::create($validatedData);
 
@@ -47,7 +50,6 @@ class CityController extends Controller
     public function show($id)
     {
         $city = Cities::with('country')->where('country_id', $id)->get();
-
         if (!$city) {
             return response()->json(['message' => 'City not found'], 404);
         }
@@ -61,7 +63,10 @@ class CityController extends Controller
         $validatedData = $request->validate([
             'city_name' => 'required|string|max:255',
             'country_id' => 'required|exists:countries,id',
+            'latitude' => 'nullable|string|max:50',
+            'longitude' => 'nullable|string|max:50',
         ]);
+        
 
         $city = Cities::find($id);
 
