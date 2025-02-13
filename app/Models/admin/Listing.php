@@ -8,12 +8,13 @@ use App\Models\admin\countries;
 use App\Models\admin\PropertyStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Listing extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['id', 'title', 'description','estimated_roi', 'city_id', 'country_id', 'property_type_id', 'property_status_id', 'listing_date', 'price', 'square_foot', 'parking', 'year_built', 'lot_size', 'longitude', 'latitude', 'school_district', 'walkability_score', 'crime_rate','gdrp_agreement', 'roi', 'area','monthly_rent','zip_code','geolocation_coordinates', 'cap_rate', 'address', 'bedrooms', 'bathrooms', 'half_bathrooms', 'arv', 'gross_margin','moa', 'user_id', 'is_featured','is_approved' , 'repair_cost' , 'wholesale_fee' , 'price_per_square_feet'];
+    protected $fillable = ['id', 'title', 'description','estimated_roi', 'city_id', 'country_id', 'property_type_id', 'property_status_id', 'listing_date', 'price', 'square_foot', 'parking', 'year_built', 'lot_size', 'longitude', 'latitude', 'school_district', 'walkability_score', 'crime_rate','gdrp_agreement', 'roi', 'area','monthly_rent','zip_code','geolocation_coordinates', 'cap_rate', 'address', 'bedrooms', 'bathrooms', 'half_bathrooms', 'arv', 'gross_margin','moa', 'user_id', 'is_featured','is_approved' , 'repair_cost' , 'wholesale_fee' , 'price_per_square_feet' ,  'Owner_Full_Name', 'Owner_Age','Owner_Contact_Number','Owner_Email_Address','Owner_Government_ID_Proof','Owner_Property_Ownership_Proof','Owner_Ownership_Type','Owner_Property_Documents'];
 
 
 public function city()
@@ -68,6 +69,47 @@ public function propertyFeatures()
 public function kpis()
 {
     return $this->hasOne(PropertyKpi::class);
+}
+
+
+
+
+
+
+
+
+
+public function getArvAttribute()
+{
+    $avgPricePerSqFt = Listing::where('city_id', $this->city_id)
+        ->where('property_type_id', $this->property_type_id)
+        ->where('square_foot', '>', 0)
+        ->avg('price_per_square_feet');  // Using saved price_per_square_feet column
+
+    return $avgPricePerSqFt ? ($avgPricePerSqFt * $this->square_foot) : null;
+}
+
+
+
+    // Accessor for MOA (Maximum Offer Price)
+    public function getMoaAttribute()
+    {
+        $arv = $this->arv;
+        if ($arv > 0) {
+            return ($arv * 0.70) - (($this->repair_cost + $this->wholesale_fee) ?? 0);
+        }
+        return 0;
+    }
+
+    // Accessor for ROI (Return on Investment)
+public function getRoiAttribute()
+{
+    $arv = $this->arv;
+    $totalInvestmentCost = $this->price + ($this->repair_cost ?? 0) + ($this->wholesale_fee ?? 0);
+
+    $profit = $arv - $totalInvestmentCost;
+
+    return $arv && $totalInvestmentCost > 0 ? ($profit / $totalInvestmentCost) * 100 : null;
 }
 
 

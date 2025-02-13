@@ -48,19 +48,19 @@ class ListingController extends Controller
 public function index()
 {
     // Check if the authenticated user is an admin
-    if (Auth::check() && Auth::user()->role === 'admin') {
+    // if (Auth::check() && Auth::user()->role === 'admin') {
         $listings = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
             ->orderBy('id', 'desc')
             ->get();
-    } else {
-        $listings = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
-            ->where('user_id', Auth::id()) // Filter by logged-in user's ID
-            ->orderBy('id', 'desc')
-            ->get();
-    }
+    // } else {
+    //     $listings = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+    //         ->where('user_id', Auth::id()) // Filter by logged-in user's ID
+    //         ->orderBy('id', 'desc')
+    //         ->get();
+    // }
 
     $listings->transform(function ($listing) {
-        $listing->country_name = $listing->country->country_name; // Ensure 'country_name' is accessed correctly
+        $listing->country_name = $listing->country->country_name; 
         return $listing;
     });
 
@@ -116,31 +116,45 @@ public function index()
             'repair_cost' => 'nullable|numeric', // New Validation
             'wholesale_fee' => 'nullable|numeric', // New Validation
             'Listing_media.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
+            'price_per_square_feet' => 'nullable|numeric',
+            'Owner_Full_Name' => 'required|string|max:255',
+            'Owner_Age' => 'nullable|numeric',
+            'Owner_Contact_Number' => 'nullable|string|max:20',
+            'Owner_Email_Address' => 'nullable|email|max:255',
+            'Owner_Government_ID_Proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'Owner_Property_Ownership_Proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'Owner_Ownership_Type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
+            'Owner_Property_Documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
 
         ]);
        
 
-        $avg_price_per_sq_ft = Listing::where('city_id', $validatedData['city_id'])
-        ->where('property_type_id', $validatedData['property_type_id'])
-        ->where('square_foot', '>', 0)
-        ->avg(DB::raw('price / square_foot'));
+    //     $avg_price_per_sq_ft = Listing::where('city_id', $validatedData['city_id'])
+    //     ->where('property_type_id', $validatedData['property_type_id'])
+    //     ->where('square_foot', '>', 0)
+    //     ->avg(DB::raw('price / square_foot'));
 
-    $arv = $avg_price_per_sq_ft ? ($avg_price_per_sq_ft * $validatedData['square_foot']) : null;
+    //     $arv = $avg_price_per_sq_ft ? ($avg_price_per_sq_ft * $validatedData['square_foot']) : null;
 
 
-    if (!empty($validatedData['price']) && !empty($validatedData['square_foot']) && $validatedData['square_foot'] > 0) {
-        $validatedData['price_per_square_feet'] = $validatedData['price'] / $validatedData['square_foot'];
-    } else {
-        $validatedData['price_per_square_feet'] = null;
-    }
+    // // if (!empty($validatedData['price']) && !empty($validatedData['square_foot']) && $validatedData['square_foot'] > 0) {
+    // //     $validatedData['price_per_square_feet'] = $validatedData['price'] / $validatedData['square_foot'];
+    // // } else {
+    // //     $validatedData['price_per_square_feet'] = null;
+    // // }
 
-    $moa = $arv - ($validatedData['repair_cost'] ?? 0); 
-    $roi = $arv && $validatedData['price'] ? (($arv - ($validatedData['repair_cost'] ?? 0)) / $validatedData['price']) * 100 : null;
+    // if($arv > 0)
+    // {
+    // $moa = ($arv*0.70) + (($validatedData['repair_cost'] +$validatedData['wholesale_fee'] )  ?? 0); 
+    // }
+    // else
+    // $moa = 0;
+    // $roi = $arv && $validatedData['price'] ? (($arv - ($validatedData['repair_cost'] ?? 0)) / $validatedData['price']) * 100 : null;
 
         $user_id = Auth::id();
         
     
-        $listing = Listing::create(array_merge($validatedData, ['user_id' => $user_id , 'arv' => $arv, 'moa' => $moa , 'roi' => $roi]));
+        $listing = Listing::create(array_merge($validatedData, ['user_id' => $user_id ]));
     
        
         if($listing)
@@ -294,25 +308,45 @@ public function index()
 
 
 
-    public function show($id)
-    {
-        $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus','features' ])
+public function show($id)
+{
+    // Fetch the listing with relationships
+    $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
                       ->find($id);
 
+    // Check if the listing exists
     if ($listing) {
-        $listing->country_name = $listing->country ? $listing->country->name : null;
-        PropertyKpi::create(
-            [
-                'users_id'=>Auth::id(),
-                'listing_id'=>$listing->id,
-            ]
-            );
+        // Check if the logged-in user is an admin
+        if (Auth::user() && !Auth::user()->is_admin) {
+            // Remove sensitive data for non-admin users
+            $listing->makeHidden([
+                'Owner_Full_Name',
+                'Owner_Contact_Number',
+                'Owner_Email_Address',
+                'Owner_Government_ID_Proof',
+                'Owner_Property_Ownership_Proof',
+                'Owner_Ownership_Type',
+                'Owner_Property_Documents'
+            ]);
+        }
 
+        // Add country_name to the response
+        $listing->country_name = $listing->country ? $listing->country->name : null;
+
+        // Record the property view in PropertyKpi
+        PropertyKpi::create([
+            'users_id' => Auth::id(),
+            'listing_id' => $listing->id,
+        ]);
+
+        // Return the response with the listing data
         return response()->json($listing);
     } else {
+        // If the listing is not found
         return response()->json(['message' => 'Property Not Found'], 404);
     }
-    }
+}
+
 
     // public function update(Request $request, $id)
     // {
@@ -478,7 +512,15 @@ public function index()
         'wholesale_fee' => 'nullable|numeric', 
         'other_features.*' => 'exists:other_features,id|integer',
         'gdrp_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
-        'Listing_media.*' => 'file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
+        'Listing_media.*' => 'file,|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
+        'Owner_Age' => 'required|numeric',
+        'Owner_Contact_Number' => 'required|string|max:20',
+        'Owner_Email_Address' => 'required|email|max:255',
+        'Owner_Government_ID_Proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        'Owner_Property_Ownership_Proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        'Owner_Ownership_Type' => 'required|in:Freehold,Leasehold,Joint Ownership',
+        'Owner_Property_Documents' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048'
+
     ]);
 
 
@@ -813,16 +855,27 @@ public function gdrpAggrement_temp(Request $request)
 
 public function Get_High_Roi_zone()
 {
-    $highROIListings = Listing::where(DB::raw('CAST(roi AS DECIMAL(10,2))'), '>', 10)
-    ->orderBy('roi', 'DESC')
-    ->get();
+//     $highROIListings = Listing::where(DB::raw('CAST(roi AS DECIMAL(10,2))'), '>', 15)
+//     ->orderBy('roi', 'DESC')
+//     ->get();
    
       
+//     if ($highROIListings->isEmpty()) {
+//         return response()->json(['message' => 'No high ROI zones found'], 404);
+//     }
+
+//     return response()->json($highROIListings);
+// }
+ $highROIListings = Listing::all()->filter(function ($listing) {
+        return $listing->roi > 15; // Using accessor here
+    })->sortByDesc('roi')->values(); // Sort and reset array keys
+   
     if ($highROIListings->isEmpty()) {
         return response()->json(['message' => 'No high ROI zones found'], 404);
     }
 
     return response()->json($highROIListings);
 }
+
 
 }

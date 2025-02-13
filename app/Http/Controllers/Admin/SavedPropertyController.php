@@ -10,21 +10,56 @@ use Illuminate\Support\Facades\Auth;
 
 class SavedPropertyController extends Controller
 {
+    // public function savedProperties()
+    // {
+    //     // Check if the user is an admin
+    //     if (Auth::user()->role === 'admin') {
+    //         // Admin: Show all users' saved properties
+    //         $savedProperties = SavedProperty::with(['user', 'listing.city', 'listing.city.name'])->get();
+    //         return response()->json(['savedProperties' => $savedProperties], 200); // OK status
+    //     } else {
+    //         // User: Show only the user's saved properties
+    //         $savedProperties = SavedProperty::where('user_id', Auth::id())
+    //                                         ->with('listing')
+    //                                         ->get();
+    //         return response()->json(['savedProperties' => $savedProperties], 200); // OK status
+    //     }
+    // }
+
+
     public function savedProperties()
-    {
-        // Check if the user is an admin
-        if (Auth::user()->role === 'admin') {
-            // Admin: Show all users' saved properties
-            $savedProperties = SavedProperty::with(['user', 'listing.city', 'listing.city.name'])->get();
-            return response()->json(['savedProperties' => $savedProperties], 200); // OK status
-        } else {
-            // User: Show only the user's saved properties
-            $savedProperties = SavedProperty::where('user_id', Auth::id())
-                                            ->with('listing')
-                                            ->get();
-            return response()->json(['savedProperties' => $savedProperties], 200); // OK status
-        }
+{
+    // Check if the user is an admin
+    if (Auth::user()->role === 'admin') {
+        // Admin: Show all users' saved properties with city and property status names
+        $savedProperties = SavedProperty::with(['user', 'listing.city', 'listing.propertyStatus'])
+                                        ->get();
+        
+        // Transform saved properties to include city and property status names
+        $savedProperties = $savedProperties->map(function ($savedProperty) {
+            $savedProperty->listing->city_name = $savedProperty->listing->city->name;
+            $savedProperty->listing->property_status_name = $savedProperty->listing->propertyStatus->name;
+            return $savedProperty;
+        });
+
+        return response()->json(['savedProperties' => $savedProperties], 200); // OK status
+    } else {
+        // User: Show only the user's saved properties with city and property status names
+        $savedProperties = SavedProperty::where('user_id', Auth::id())
+                                        ->with(['listing.city', 'listing.propertyStatus'])
+                                        ->get();
+
+        // Transform saved properties to include city and property status names
+        $savedProperties = $savedProperties->map(function ($savedProperty) {
+            $savedProperty->listing->city_name = $savedProperty->listing->city->name;
+            $savedProperty->listing->property_status_name = $savedProperty->listing->propertyStatus->name;
+            return $savedProperty;
+        });
+
+        return response()->json(['savedProperties' => $savedProperties], 200); // OK status
     }
+}
+
 
     // Add Saved Property
     public function addSavedProperty(Request $request)
