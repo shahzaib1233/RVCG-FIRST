@@ -39,6 +39,7 @@ class User extends Authenticatable
         'referrers',
         'reward_points',
         'is_active',
+        'stripe_customer_id',  // Add Stripe customer ID
     ];
     protected $casts = [
         'social_media_profiles' => 'array', // Social profiles stored as JSON
@@ -90,6 +91,14 @@ public function vendor()
 {
     return $this->hasOne(Vendor::class);
 }
+
+
+
+public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);  // Assuming your Subscription model is 'Subscription'
+    }
+
 
 
 }

@@ -62,21 +62,56 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
 
 
-    //List of Packages
-    Route::get('/packages', [PackagesController::class, 'index']);
+    // //List of Packages
+    // Route::get('/packages', [PackagesController::class, 'index']);
 
-    // Create a new package
-    Route::post('/packages', [PackagesController::class, 'store']);
+    // // Create a new package
+    // Route::post('/packages', [PackagesController::class, 'store']);
 
-    // Update an existing package
-    Route::put('/packages/{id}', [PackagesController::class, 'update']);
+    // // Update an existing package
+    // Route::put('/packages/{id}', [PackagesController::class, 'update']);
 
-    // Delete a package
-    Route::delete('/packages/{id}', [PackagesController::class, 'destroy']);
+    // // Delete a package
+    // Route::delete('/packages/{id}', [PackagesController::class, 'destroy']);
 
-    //single Package
+    // //single Package
 
-    Route::get('/packages/{id}', [PackagesController::class, 'show']);
+    // Route::get('/packages/{id}', [PackagesController::class, 'show']);
+
+
+
+    // List of Packages
+Route::get('/packages', [PackagesController::class, 'index']);
+
+// Create a new package
+Route::post('/packages', [PackagesController::class, 'store']);
+
+// Update an existing package
+Route::put('/packages/{id}', [PackagesController::class, 'update']);
+
+// Delete a package
+Route::delete('/packages/{id}', [PackagesController::class, 'destroy']);
+
+// Show a single package
+Route::get('/packages/{id}', [PackagesController::class, 'show']);
+
+// // Create a new subscription for a user
+// Route::post('/subscriptions', [SubscriptionController::class, 'store']);  // Create a new subscription and handle Stripe payment
+
+// // Get all subscriptions (with user and package information)
+// Route::get('/subscriptions', [SubscriptionController::class, 'index']);  
+
+// // Show a specific subscription
+// Route::get('/subscriptions/{id}', [SubscriptionController::class, 'show']);  
+
+// // Cancel a subscription
+// Route::post('/subscriptions/cancel', [SubscriptionController::class, 'cancelSubscription']);  // Cancel subscription on Stripe
+
+// // Update an existing subscription
+// Route::put('/subscriptions/{id}', [SubscriptionController::class, 'update']);  // Update subscription details
+
+
+
 
     // List all offers
     Route::get('/offers', [OfferController::class, 'index']);

@@ -15,7 +15,7 @@ class SavedPropertyController extends Controller
         // Check if the user is an admin
         if (Auth::user()->role === 'admin') {
             // Admin: Show all users' saved properties
-            $savedProperties = SavedProperty::with(['user', 'listing'])->get();
+            $savedProperties = SavedProperty::with(['user', 'listing.city', 'listing.city.name'])->get();
             return response()->json(['savedProperties' => $savedProperties], 200); // OK status
         } else {
             // User: Show only the user's saved properties
