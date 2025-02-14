@@ -537,13 +537,13 @@ public function show($id)
     }
  
 
-    $avg_price_per_sq_ft = Listing::where('city_id', $validatedData['city_id'])
-    ->where('property_type_id', $validatedData['property_type_id'])
-    ->where('square_foot', '>', 0)
-    ->avg(DB::raw('price / square_foot'));
+    // $avg_price_per_sq_ft = Listing::where('city_id', $validatedData['city_id'])
+    // ->where('property_type_id', $validatedData['property_type_id'])
+    // ->where('square_foot', '>', 0)
+    // ->avg(DB::raw('price / square_foot'));
 
-    // Calculate ARV directly
-    $arv = $avg_price_per_sq_ft ? ($avg_price_per_sq_ft * $validatedData['square_foot']) : null;
+    // // Calculate ARV directly
+    // $arv = $avg_price_per_sq_ft ? ($avg_price_per_sq_ft * $validatedData['square_foot']) : null;
 
 
     $user_id = Auth::id();
@@ -599,7 +599,7 @@ public function show($id)
     }
 
     // Update Listing
-    $listing->update(array_merge($validatedData, ['user_id' => $user_id , 'arv' => $arv, ]));
+    $listing->update(array_merge($validatedData, ['user_id' => $user_id  ]));
 
     // Update Property Features
     if ($request->has('other_features') && is_array($request->other_features)) {
