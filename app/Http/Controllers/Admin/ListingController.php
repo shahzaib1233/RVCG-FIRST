@@ -318,9 +318,8 @@ public function index()
 
 public function show($id)
 {
-    $isAdmin = Auth::check() && Auth::user()->is_admin;
 
-    if ($isAdmin) {
+    if (Auth::user()->role === 'admin') {
         $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
                           ->find($id);
     } 
