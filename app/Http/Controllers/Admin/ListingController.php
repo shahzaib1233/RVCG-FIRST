@@ -318,39 +318,79 @@ public function index()
 
 public function show($id)
 {
-    // Fetch the listing with relationships
-    $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
-                      ->find($id);
+    $isAdmin = Auth::check() && Auth::user()->is_admin;
 
-    if ($listing) {
-        if (Auth::user() && !Auth::user()->is_admin) {
-            $listing->makeHidden([
-                'Owner_Full_Name',
-                'Owner_Contact_Number',
-                'Owner_Email_Address',
-                'Owner_Government_ID_Proof',
-                'Owner_Property_Ownership_Proof',
-                'Owner_Ownership_Type',
-                'owner_property_documents'
-            ]);
-        }
+    if ($isAdmin) {
+        $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+                          ->find($id);
+    } 
+    else {
+        $listing = Listing::select([
+                            'id', 
+                            'title', 
+                            'description', 
+                            'city_id', 
+                            'country_id', 
+                            'property_type_id', 
+                            'property_status_id', 
+                            'listing_date', 
+                            'price', 
+                            'square_foot', 
+                            'parking', 
+                            'year_built', 
+                            'lot_size', 
+                            'longitude', 
+                            'latitude', 
+                            'school_district', 
+                            'walkability_score', 
+                            'crime_rate', 
+                            'roi', 
+                            'monthly_rent', 
+                            'cap_rate', 
+                            'geolocation_coordinates', 
+                            'zip_code', 
+                            'area', 
+                            'gdrp_agreement', 
+                            'address', 
+                            'bedrooms', 
+                            'bathrooms', 
+                            'half_bathrooms', 
+                            'arv', 
+                            'gross_margin', 
+                            'estimated_roi', 
+                            'repair_cost', 
+                            'wholesale_fee', 
+                            'price_per_square_feet', 
+                            'user_id', 
+                            'created_at', 
+                            'updated_at', 
+                            'is_featured', 
+                            'is_approved', 
+                            'moa'
+                        ])
+                        ->with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+                        ->find($id);
+    }
 
-        // Add country_name to the response
-        $listing->country_name = $listing->country ? $listing->country->name : null;
+    if (!$listing) {
+        return response()->json(['message' => 'Property Not Found'], 404);
+    }
 
-        // Record the property view in PropertyKpi
+    $listing->country_name = $listing->country ? $listing->country->name : null;
+
+    if (Auth::check()) {
         PropertyKpi::create([
             'users_id' => Auth::id(),
             'listing_id' => $listing->id,
         ]);
-
-        // Return the response with the listing data
-        return response()->json($listing);
-    } else {
-        // If the listing is not found
-        return response()->json(['message' => 'Property Not Found'], 404);
     }
+
+    return response()->json([
+        'status' => 'success',
+        'data' => $listing
+    ], 200);
 }
+
 
 
     // public function update(Request $request, $id)
