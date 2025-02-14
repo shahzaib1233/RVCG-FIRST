@@ -127,11 +127,11 @@ public function index()
             'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
 
         ]);
-        if ($request->hasFile('Owner_Property_Documents')) {
-            $file = $request->file('Owner_Property_Documents');
+        if ($request->hasFile('owner_property_documents')) {
+            $file = $request->file('owner_property_documents');
             $filename = time() . '_' . $file->getClientOriginalName();
             $file->move(public_path('uploads/listings/Owner_Property_Documents'), $filename);
-            $validatedData['Owner_Property_Documents'] = 'uploads/listings/Owner_Property_Documents/' . $filename;
+            $validatedData['owner_property_documents'] = 'uploads/listings/Owner_Property_Documents/' . $filename;
         }
         
        
