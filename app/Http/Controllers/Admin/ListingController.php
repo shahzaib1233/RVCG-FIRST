@@ -121,7 +121,7 @@ public function index()
             'Owner_Age' => 'nullable|numeric',
             'Owner_Contact_Number' => 'nullable|string|max:20',
             'Owner_Email_Address' => 'nullable|email|max:255',
-            'Owner_Government_ID_Proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'Owner_Government_ID_Proof' => 'nullable|string',
             'Owner_Property_Ownership_Proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'Owner_Ownership_Type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
             'Owner_Property_Documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
@@ -513,13 +513,14 @@ public function show($id)
         'other_features.*' => 'exists:other_features,id|integer',
         'gdrp_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
         'Listing_media.*' => 'file,|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
-        'Owner_Age' => 'required|numeric',
-        'Owner_Contact_Number' => 'required|string|max:20',
-        'Owner_Email_Address' => 'required|email|max:255',
-        'Owner_Government_ID_Proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        'Owner_Property_Ownership_Proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        'Owner_Ownership_Type' => 'required|in:Freehold,Leasehold,Joint Ownership',
-        'Owner_Property_Documents' => 'required|file|mimes:jpg,jpeg,png,pdf|max:2048'
+        'Owner_Full_Name' => 'required|string|max:255',
+        'Owner_Age' => 'nullable|numeric',
+        'Owner_Contact_Number' => 'nullable|string|max:20',
+        'Owner_Email_Address' => 'nullable|email|max:255',
+        'Owner_Government_ID_Proof' => 'nullable|string',
+        'Owner_Property_Ownership_Proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        'Owner_Ownership_Type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
+        'Owner_Property_Documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
 
     ]);
 
