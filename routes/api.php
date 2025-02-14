@@ -345,6 +345,7 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
         Route::post('/skiptrace', [SkipTraceController::class, 'store']);
         Route::put('/skiptrace/{id}', [skiptraceController::class, 'update']);
         Route::delete('/skiptrace/{id}', [SkiptraceController::class, 'destroy']);
+        Route::get('/skiptrace', [SkiptraceController::class, 'index']);
 });
 
 
