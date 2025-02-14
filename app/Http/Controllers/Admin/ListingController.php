@@ -47,19 +47,20 @@ class ListingController extends Controller
 
 public function index()
 {
-    // Check if the authenticated user is an admin
-    // if (Auth::check() && Auth::user()->role === 'admin') {
-        $listings = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
-            ->orderBy('id', 'desc')
-            ->get();
-    // } else {
-    //     $listings = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
-    //         ->where('user_id', Auth::id()) // Filter by logged-in user's ID
-    //         ->orderBy('id', 'desc')
-    //         ->get();
-    // }
+    $listings = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+        ->orderBy('id', 'desc')
+        ->get();
 
     $listings->transform(function ($listing) {
+        $listing->makeHidden([
+            'owner_age', 
+            'owner_contact_number', 
+            'owner_email_address', 
+            'owner_government_id_proof', 
+            'owner_property_ownership_proof', 
+            'owner_ownership_type', 
+            'owner_property_documents'
+        ]);
         $listing->country_name = $listing->country->country_name; 
         return $listing;
     });
@@ -525,7 +526,7 @@ public function show($id)
         'owner_property_ownership_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
         'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        'price_per_square_feet' => 'required|string'
+        'price_per_square_feet' => 'required|numeric'
 
     ]);
 
