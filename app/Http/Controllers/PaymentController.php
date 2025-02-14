@@ -1,56 +1,65 @@
 <?php
-namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+// app/Http/Controllers/SkipTraceController.php
+
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
+use App\Models\Payment;
+use App\Models\SkipTrace;
+use Illuminate\Http\Request;
 
-class PaymentController extends Controller
+
+class SkipTraceController extends Controller
 {
-    public function createPaymentIntent(Request $request)
+    public function processPayment(Request $request)
     {
+        // Validate the request
+        $request->validate([
+            'skiptrace_id' => 'required|exists:skiptrace,id',
+            'amount' => 'required|numeric',
+            'payment_method' => 'required',
+        ]);
+
+        // Find the skiptrace record
+        $skiptrace = SkipTrace::findOrFail($request->skiptrace_id);
+
+        // Set Stripe API key
+        Stripe::setApiKey(env('STRIPE_SECRET'));
+
         try {
-            Stripe::setApiKey(env('STRIPE_SECRET'));
-
+            // Create a payment intent
             $paymentIntent = PaymentIntent::create([
-                'amount' => $request->amount * 100,
-                'currency' => 'usd',
-                'payment_method_types' => ['card'],
+                'amount' => $request->amount * 100, // Amount in cents
+                'currency' => 'usd', // Adjust if necessary
+                'payment_method' => $request->payment_method,
+                'confirmation_method' => 'manual',
+                'confirm' => true,
             ]);
 
-            return response()->json([
-                'clientSecret' => $paymentIntent->client_secret
-            ]);
+            // Check if payment succeeded
+            if ($paymentIntent->status == 'succeeded') {
+                // Save the payment in the 'payments' table
+                $payment = Payment::create([
+                    'user_id' => $skiptrace->user_id,
+                    'skiptrace_id' => $skiptrace->id,
+                    'amount' => $request->amount,
+                    'payment_status' => 'succeeded',
+                    'transaction_id' => $paymentIntent->id,
+                ]);
+
+                // Link the payment to the skiptrace record
+                $skiptrace->payment_id = $payment->id;
+                $skiptrace->is_paid = true;
+                $skiptrace->save();
+
+                return response()->json(['message' => 'Payment successful, details saved!'], 200);
+            } else {
+                return response()->json(['message' => 'Payment failed'], 400);
+            }
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
-
-
-    public function createSubscription(Request $request)
-{
-    Stripe::setApiKey(env('STRIPE_SECRET'));
-
-    $checkoutSession = \Stripe\Checkout\Session::create([
-        'payment_method_types' => ['card'],
-        'line_items' => [[
-            'price_data' => [
-                'currency' => 'usd',
-                'product_data' => [
-                    'name' => 'Premium Website Package',
-                ],
-                'unit_amount' => 299900,
-                'recurring' => ['interval' => 'month'],
-            ],
-            'quantity' => 1,
-        ]],
-        'mode' => 'subscription',
-        'success_url' => 'http://yourwebsite.com/success?session_id={CHECKOUT_SESSION_ID}',
-        'cancel_url' => 'http://yourwebsite.com/cancel',
-    ]);
-
-    return response()->json(['url' => $checkoutSession->url]);
 }
 
-}
+
