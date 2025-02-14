@@ -13,10 +13,19 @@ use Illuminate\Support\Facades\DB;
 class Listing extends Model
 {
     use HasFactory;
-
+    protected $hidden = [
+        'Owner_Full_Name',
+        'Owner_Contact_Number',
+        'Owner_Email_Address',
+        'Owner_Government_ID_Proof',
+        'Owner_Property_Ownership_Proof',
+        'Owner_Ownership_Type',
+        'Owner_Property_Documents'
+    ];
+    
     protected $fillable = ['id', 'title', 'description','estimated_roi', 'city_id', 'country_id', 'property_type_id', 'property_status_id', 'listing_date', 'price', 'square_foot', 'parking', 'year_built', 'lot_size', 'longitude', 'latitude', 'school_district', 'walkability_score', 'crime_rate','gdrp_agreement', 'roi', 'area','monthly_rent','zip_code','geolocation_coordinates', 'cap_rate', 'address', 'bedrooms', 'bathrooms', 'half_bathrooms', 'arv', 'gross_margin','moa', 'user_id', 'is_featured','is_approved' , 'repair_cost' , 'wholesale_fee' , 'price_per_square_feet' ,  'Owner_Full_Name', 'Owner_Age','Owner_Contact_Number','Owner_Email_Address','Owner_Government_ID_Proof','Owner_Property_Ownership_Proof','Owner_Ownership_Type','Owner_Property_Documents'];
 
-
+    protected $appends = ['Owner_Property_Documents_Url'];
 public function city()
 {
     return $this->belongsTo(Cities::class, 'city_id')->select('id', 'city_name');
@@ -110,6 +119,18 @@ public function getRoiAttribute()
     $profit = $arv - $totalInvestmentCost;
 
     return $arv && $totalInvestmentCost > 0 ? ($profit / $totalInvestmentCost) * 100 : null;
+}
+
+
+
+
+
+public function getOwnerPropertyDocumentsUrlAttribute()
+{
+    if ($this->Owner_Property_Documents) {
+        return asset('uploads/listings/Owner_Property_Documents/' . $this->Owner_Property_Documents);
+    }
+    return null;
 }
 
 

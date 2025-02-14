@@ -127,6 +127,13 @@ public function index()
             'Owner_Property_Documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
 
         ]);
+        if ($request->hasFile('Owner_Property_Documents')) {
+            $file = $request->file('Owner_Property_Documents');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/listings/Owner_Property_Documents'), $filename);
+            $validatedData['Owner_Property_Documents'] = 'uploads/listings/Owner_Property_Documents/' . $filename;
+        }
+        
        
 
     //     $avg_price_per_sq_ft = Listing::where('city_id', $validatedData['city_id'])
@@ -314,11 +321,8 @@ public function show($id)
     $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
                       ->find($id);
 
-    // Check if the listing exists
     if ($listing) {
-        // Check if the logged-in user is an admin
         if (Auth::user() && !Auth::user()->is_admin) {
-            // Remove sensitive data for non-admin users
             $listing->makeHidden([
                 'Owner_Full_Name',
                 'Owner_Contact_Number',
