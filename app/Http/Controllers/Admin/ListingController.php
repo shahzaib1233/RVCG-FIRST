@@ -525,6 +525,7 @@ public function show($id)
         'owner_property_ownership_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
         'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        'price_per_square_feet' => 'required|string'
 
     ]);
 
@@ -534,11 +535,7 @@ public function show($id)
         $file->move(public_path('uploads/listings/owner_property_documents'), $filename);
         $validatedData['owner_property_documents'] = 'uploads/listings/owner_property_documents/' . $filename;
     }
-    if (!empty($validatedData['price']) && !empty($validatedData['square_foot']) && $validatedData['square_foot'] > 0) {
-        $validatedData['price_per_square_feet'] = $validatedData['price'] / $validatedData['square_foot'];
-    } else {
-        $validatedData['price_per_square_feet'] = null;
-    }
+ 
 
     $avg_price_per_sq_ft = Listing::where('city_id', $validatedData['city_id'])
     ->where('property_type_id', $validatedData['property_type_id'])
