@@ -117,14 +117,14 @@ public function index()
             'wholesale_fee' => 'nullable|numeric', // New Validation
             'Listing_media.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
             'price_per_square_feet' => 'nullable|numeric',
-            'Owner_Full_Name' => 'required|string|max:255',
-            'Owner_Age' => 'nullable|numeric',
-            'Owner_Contact_Number' => 'nullable|string|max:20',
-            'Owner_Email_Address' => 'nullable|email|max:255',
-            'Owner_Government_ID_Proof' => 'nullable|string',
-            'Owner_Property_Ownership_Proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'Owner_Ownership_Type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
-            'Owner_Property_Documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+            'owner_full_name' => 'required|string|max:255',
+            'owner_age' => 'nullable|numeric',
+            'owner_contact_number' => 'nullable|string|max:20',
+            'owner_email_address' => 'nullable|email|max:255',
+            'owner_government_id_proof' => 'nullable|string',
+            'owner_property_ownership_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
+            'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
 
         ]);
         if ($request->hasFile('Owner_Property_Documents')) {
