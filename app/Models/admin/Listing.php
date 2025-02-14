@@ -23,7 +23,10 @@ class Listing extends Model
         'Owner_Property_Documents'
     ];
     
-    protected $fillable = ['id', 'title', 'description','estimated_roi', 'city_id', 'country_id', 'property_type_id', 'property_status_id', 'listing_date', 'price', 'square_foot', 'parking', 'year_built', 'lot_size', 'longitude', 'latitude', 'school_district', 'walkability_score', 'crime_rate','gdrp_agreement', 'roi', 'area','monthly_rent','zip_code','geolocation_coordinates', 'cap_rate', 'address', 'bedrooms', 'bathrooms', 'half_bathrooms', 'arv', 'gross_margin','moa', 'user_id', 'is_featured','is_approved' , 'repair_cost' , 'wholesale_fee' , 'price_per_square_feet' ,  'Owner_Full_Name', 'Owner_Age','Owner_Contact_Number','Owner_Email_Address','Owner_Government_ID_Proof','Owner_Property_Ownership_Proof','Owner_Ownership_Type','Owner_Property_Documents'];
+    protected $fillable = ['id', 'title', 'description','estimated_roi', 'city_id', 'country_id', 'property_type_id', 'property_status_id', 'listing_date', 'price', 'square_foot', 'parking', 'year_built', 'lot_size', 'longitude', 'latitude', 'school_district', 'walkability_score', 'crime_rate','gdrp_agreement', 'roi', 'area','monthly_rent','zip_code','geolocation_coordinates', 'cap_rate', 'address', 'bedrooms', 'bathrooms', 'half_bathrooms', 'arv', 'gross_margin','moa', 'user_id', 'is_featured','is_approved' , 'repair_cost' , 'wholesale_fee' , 'price_per_square_feet' , 'owner_full_name', 'owner_age', 
+        'owner_contact_number', 'owner_email_address', 'owner_government_id_proof', 
+        'owner_property_ownership_proof', 'owner_ownership_type', 'owner_property_documents'
+  ];
 
     protected $appends = ['Owner_Property_Documents_Url'];
 public function city()

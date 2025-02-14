@@ -124,14 +124,14 @@ public function index()
             'owner_government_id_proof' => 'nullable|string',
             'owner_property_ownership_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
-            'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+            'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
 
         ]);
         if ($request->hasFile('owner_property_documents')) {
             $file = $request->file('owner_property_documents');
             $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/listings/Owner_Property_Documents'), $filename);
-            $validatedData['owner_property_documents'] = 'uploads/listings/Owner_Property_Documents/' . $filename;
+            $file->move(public_path('uploads/listings/owner_property_documents'), $filename);
+            $validatedData['owner_property_documents'] = 'uploads/listings/owner_property_documents/' . $filename;
         }
         
        
@@ -330,7 +330,7 @@ public function show($id)
                 'Owner_Government_ID_Proof',
                 'Owner_Property_Ownership_Proof',
                 'Owner_Ownership_Type',
-                'Owner_Property_Documents'
+                'owner_property_documents'
             ]);
         }
 
@@ -517,18 +517,23 @@ public function show($id)
         'other_features.*' => 'exists:other_features,id|integer',
         'gdrp_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
         'Listing_media.*' => 'file,|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
-        'Owner_Full_Name' => 'required|string|max:255',
-        'Owner_Age' => 'nullable|numeric',
-        'Owner_Contact_Number' => 'nullable|string|max:20',
-        'Owner_Email_Address' => 'nullable|email|max:255',
-        'Owner_Government_ID_Proof' => 'nullable|string',
-        'Owner_Property_Ownership_Proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        'Owner_Ownership_Type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
-        'Owner_Property_Documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048'
+        'owner_full_name' => 'required|string|max:255',
+        'owner_age' => 'nullable|numeric',
+        'owner_contact_number' => 'nullable|string|max:20',
+        'owner_email_address' => 'nullable|email|max:255',
+        'owner_government_id_proof' => 'nullable|string',
+        'owner_property_ownership_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
+        'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
 
     ]);
 
-
+    if ($request->hasFile('owner_property_documents')) {
+        $file = $request->file('owner_property_documents');
+        $filename = time() . '_' . $file->getClientOriginalName();
+        $file->move(public_path('uploads/listings/owner_property_documents'), $filename);
+        $validatedData['owner_property_documents'] = 'uploads/listings/owner_property_documents/' . $filename;
+    }
     if (!empty($validatedData['price']) && !empty($validatedData['square_foot']) && $validatedData['square_foot'] > 0) {
         $validatedData['price_per_square_feet'] = $validatedData['price'] / $validatedData['square_foot'];
     } else {
