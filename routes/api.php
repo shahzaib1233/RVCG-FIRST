@@ -342,12 +342,12 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
     
 
         //skip trace 
-        Route::post('/skiptrace', [SkipTraceController::class, 'store']);
         Route::put('/skiptrace/{id}', [skiptraceController::class, 'update']);
         Route::delete('/skiptrace/{id}', [SkiptraceController::class, 'destroy']);
         Route::get('/skiptrace', [SkiptraceController::class, 'index']);
 });
 
+Route::post('/admin/skiptrace', [SkipTraceController::class, 'store']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
