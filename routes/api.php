@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\CountriesController;
 use App\Http\Controllers\Admin\LeadController;
 use App\Http\Controllers\Admin\LeadSourceController;
 use App\Http\Controllers\Admin\LeadTypeController;
+use App\Http\Controllers\Admin\skiptraceController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Auth\AuthController;
@@ -339,6 +340,11 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
         // Delete Saved Property
         Route::delete('/saved-properties/delete/{id}', [SavedPropertyController::class, 'deleteSavedProperty']);
     
+
+        //skip trace 
+        Route::post('/skiptrace', [SkipTraceController::class, 'store']);
+        Route::put('/skiptrace/{id}', [skiptraceController::class, 'update']);
+        Route::delete('/skiptrace/{id}', [SkiptraceController::class, 'destroy']);
 });
 
 

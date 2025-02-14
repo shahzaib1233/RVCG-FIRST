@@ -1,15 +1,16 @@
 <?php
 
 // app/Http/Controllers/SkipTraceController.php
+namespace App\Http\Controllers;
 
 use Stripe\Stripe;
 use Stripe\PaymentIntent;
 use App\Models\Payment;
-use App\Models\SkipTrace;
+use App\Models\admin\SkipTrace;
 use Illuminate\Http\Request;
 
 
-class SkipTraceController extends Controller
+class PaymentController extends Controller
 {
     public function processPayment(Request $request)
     {

@@ -3,6 +3,7 @@ namespace App\Http\Controllers\admin;
 use App\Models\admin\ListingMedia;
 use App\Models\admin\propertyFeatures;
 use App\Models\admin\PropertyStatus;
+use App\Models\admin\Skiptrace;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -52,15 +53,7 @@ public function index()
         ->get();
 
     $listings->transform(function ($listing) {
-        $listing->makeHidden([
-            'owner_age', 
-            'owner_contact_number', 
-            'owner_email_address', 
-            'owner_government_id_proof', 
-            'owner_property_ownership_proof', 
-            'owner_ownership_type', 
-            'owner_property_documents'
-        ]);
+       
         $listing->country_name = $listing->country->country_name; 
         return $listing;
     });
@@ -319,10 +312,18 @@ public function index()
 public function show($id)
 {
 
-    if (Auth::user()->role === 'admin') {
+    $skiptrace = Skiptrace::where('user_id', Auth::id())
+    ->where('listing_id', $id)
+    ->get();
+if (Auth::user()->role === 'admin') {
         $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
                           ->find($id);
     } 
+    else if(!$skiptrace->isEmpty())
+    {
+        $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+        ->find($id);
+    }
     else {
         $listing = Listing::select([
                             'id', 
@@ -385,7 +386,6 @@ public function show($id)
     }
 
     return response()->json([
-        'status' => 'success',
         'data' => $listing
     ], 200);
 }

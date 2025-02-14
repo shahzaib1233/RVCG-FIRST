@@ -9,15 +9,12 @@ use App\Models\admin\PropertyStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth; // Add this to use Auth
 
 class Listing extends Model
 {
     use HasFactory;
-    protected $hidden = [
-        'owner_full_name', 'owner_age', 
-        'owner_contact_number', 'owner_email_address', 'owner_government_id_proof', 
-        'owner_property_ownership_proof', 'owner_ownership_type', 'owner_property_documents'
-    ];
+
     
     protected $fillable = ['id', 'title', 'description','estimated_roi', 'city_id', 'country_id', 'property_type_id', 'property_status_id', 'listing_date', 'price', 'square_foot', 'parking', 'year_built', 'lot_size', 'longitude', 'latitude', 'school_district', 'walkability_score', 'crime_rate','gdrp_agreement', 'roi', 'area','monthly_rent','zip_code','geolocation_coordinates', 'cap_rate', 'address', 'bedrooms', 'bathrooms', 'half_bathrooms', 'arv', 'gross_margin','moa', 'user_id', 'is_featured','is_approved' , 'repair_cost' , 'wholesale_fee' , 'price_per_square_feet' , 'owner_full_name', 'owner_age', 
         'owner_contact_number', 'owner_email_address', 'owner_government_id_proof', 
@@ -82,11 +79,6 @@ public function kpis()
 
 
 
-
-
-
-
-
 public function getArvAttribute()
 {
     $avgPricePerSqFt = Listing::where('city_id', $this->city_id)
@@ -126,12 +118,34 @@ public function getRoiAttribute()
 
 public function getOwnerPropertyDocumentsUrlAttribute()
 {
-    if ($this->Owner_Property_Documents) {
+    if ($this->owner_property_documents) {
         return asset('uploads/listings/Owner_Property_Documents/' . $this->Owner_Property_Documents);
     }
     return null;
 }
+public function getHidden()
+    {
+        // Check if the user is not an admin
+        if (Auth::user() && Auth::user()->role !== 'admin') {
+            // Check if the user has paid for this listing
+            $hasAccess = Skiptrace::where('user_id', Auth::id())
+                ->where('listing_id', $this->id)
+                ->where('is_paid', true) // Ensure that the payment is completed
+                ->exists();
 
+            // If user does not have access, hide sensitive fields
+            if (!$hasAccess) {
+                return [
+                    'owner_full_name', 'owner_age', 'owner_contact_number',
+                    'owner_email_address', 'owner_government_id_proof',
+                    'owner_property_ownership_proof', 'owner_ownership_type',
+                    'owner_property_documents'
+                ];
+            }
+        }
 
+        // If user is admin or has access via skiptrace, show all fields
+        return [];
+    }
 
 }
