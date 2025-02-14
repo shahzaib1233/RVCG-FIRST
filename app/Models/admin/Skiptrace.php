@@ -16,6 +16,7 @@ class Skiptrace extends Model
         'owner_contact',
         'owner_email',
         'is_paid',
+        'payment_id',
     ];
 
     /**

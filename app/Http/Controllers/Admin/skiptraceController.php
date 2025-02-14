@@ -22,6 +22,7 @@ class skiptraceController extends Controller
         $validator = Validator::make($request->all(), [
             'listing_id'   => 'required|exists:listings,id',  // Validate listing ID
             'is_paid'      => 'boolean',  // Ensure is_paid is boolean
+            'payment_id'   => 'required_if:is_paid,true',  // Ensure payment_id is provided if is_paid is true
         ]);
 
         if ($validator->fails()) {
@@ -44,6 +45,7 @@ class skiptraceController extends Controller
             'owner_contact'=> $listing->owner_contact_number,
             'owner_email'  => $listing->owner_email_address,
             'is_paid'      => $request->is_paid,  // Use the 'is_paid' from the request
+            // 'payment_id'  => $request->payment_id,  // Use the 'payment_id' from the request
         ];
     
         // Create the skiptrace record
