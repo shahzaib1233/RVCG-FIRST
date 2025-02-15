@@ -366,7 +366,8 @@ if (Auth::user()->role === 'admin') {
                             'updated_at', 
                             'is_featured', 
                             'is_approved', 
-                            'moa'
+                            'moa',
+                            'owner_full_name'
                         ])
                         ->with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
                         ->find($id);
