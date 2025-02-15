@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\admin\Listing;
 use App\Models\admin\Skiptrace;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
@@ -63,48 +64,79 @@ class skiptraceController extends Controller
 
 
     public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'listing_id' => 'required|exists:listings,id', 
-            'is_paid'    => 'boolean',
+{
+    $validator = Validator::make($request->all(), [
+        'listing_id' => 'required|array', 
+        'listing_id.*' => 'exists:listings,id', 
+        'amount' => 'required|numeric|min:1', // Use amount from request
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    } 
+
+    $userId = Auth::id();
+    $amount = $request->amount * 100; // Convert to cents for Stripe
+
+    // Stripe Payment Logic
+    \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+
+    try {
+        // Create PaymentIntent
+        $paymentIntent = \Stripe\PaymentIntent::create([
+            'amount' => $amount,  
+            'currency' => 'usd',
+            'automatic_payment_methods' => [
+                'enabled' => true,
+            ],
         ]);
-        
-    
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        } 
-    
-        $userId = Auth::id();
-        $listing = Listing::find($request->listing_id);
-    
-        if (!$listing) {
-            return response()->json(['message' => 'Listing not found'], 404);
-        }
-    
-        // Stripe Payment Logic
-        \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
-    
-        try {
-            // Calculate amount in cents (e.g., $10.00 becomes 1000)
-            $amount = $listing->price * 100;
-    
-            // Create a payment intent
-            $paymentIntent = \Stripe\PaymentIntent::create([
-                'amount' => $amount,  
-                'currency' => 'usd',
-                'automatic_payment_methods' => [
-                    'enabled' => true,
-                ],
+
+        // Confirm the PaymentIntent
+        $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntent->id);
+        $paymentIntent->confirm();
+
+        // Check if payment was successful
+        if ($paymentIntent->status === 'succeeded') {
+            // Payment successful, store in payments table
+            $payment = Payment::create([
+                'user_id' => $userId,
+                'amount' => $request->amount, // Store in dollars as received
+                'payment_status' => true,
+                'transaction_id' => $paymentIntent->client_secret,
             ]);
-    
+
+            // Insert into skiptrace table
+            foreach ($request->listing_id as $listingId) {
+                $listing = Listing::find($listingId);
+
+                Skiptrace::create([
+                    'listing_id' => $listing->id,
+                    'user_id' => $userId,
+                    'owner_name' => $listing->owner_name,
+                    'owner_contact' => $listing->owner_contact,
+                    'owner_email' => $listing->owner_email,
+                    'is_paid' => true,
+                    'payment_id' => $payment->id,
+                ]);
+            }
+
             return response()->json([
-                'clientSecret' => $paymentIntent->client_secret,
+                'status' => 'success',
+                'message' => 'Payment successful and skiptrace records created.',
             ]);
-    
-        } catch (\Stripe\Exception\ApiErrorException $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Payment failed. Please try again.',
+            ]);
         }
+    } catch (\Stripe\Exception\ApiErrorException $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
     }
+}
+
+    
+    
     
 
     public function update(Request $request, $id)
