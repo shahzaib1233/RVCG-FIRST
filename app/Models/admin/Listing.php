@@ -130,7 +130,7 @@ public function getHidden()
             // Check if the user has paid for this listing
             $hasAccess = Skiptrace::where('user_id', Auth::id())
                 ->where('listing_id', $this->id)
-                ->where('is_paid', true) // Ensure that the payment is completed
+                    ->where('is_paid', true) // Ensure that the payment is completed
                 ->exists();
 
             // If user does not have access, hide sensitive fields

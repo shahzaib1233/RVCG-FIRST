@@ -59,6 +59,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
     //High ROI Zones listings
     Route::get('highroizone', [ListingController::class, 'Get_High_Roi_zone']);
+    Route::get('lowroizone', [ListingController::class, 'Low_High_Roi_zone']);
 
 
 

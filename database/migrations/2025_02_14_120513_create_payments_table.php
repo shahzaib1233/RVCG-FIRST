@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
              $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Foreign key to user
-            $table->foreignId('skiptrace_id')->constrained()->onDelete('cascade'); // Foreign key to skiptrace
             $table->decimal('amount', 10, 2); // Amount paid
             $table->string('payment_status'); // Payment status (e.g., succeeded, failed)
             $table->string('transaction_id')->unique(); // Stripe transaction ID

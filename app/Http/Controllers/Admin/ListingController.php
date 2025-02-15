@@ -385,9 +385,9 @@ if (Auth::user()->role === 'admin') {
         ]);
     }
 
-    return response()->json([
-        'data' => $listing
-    ], 200);
+    return response()->json(
+        $listing
+   );
 }
 
 
@@ -923,6 +923,39 @@ public function Get_High_Roi_zone()
 
     return response()->json($highROIListings);
 }
+
+
+
+
+
+
+
+
+
+public function Low_High_Roi_zone()
+{
+//     $highROIListings = Listing::where(DB::raw('CAST(roi AS DECIMAL(10,2))'), '>', 15)
+//     ->orderBy('roi', 'DESC')
+//     ->get();
+   
+      
+//     if ($highROIListings->isEmpty()) {
+//         return response()->json(['message' => 'No high ROI zones found'], 404);
+//     }
+
+//     return response()->json($highROIListings);
+// }
+ $highROIListings = Listing::all()->filter(function ($listing) {
+        return $listing->roi < 15; // Using accessor here
+    })->sortByDesc('roi')->values(); // Sort and reset array keys
+   
+    if ($highROIListings->isEmpty()) {
+        return response()->json(['message' => 'No high ROI zones found'], 404);
+    }
+
+    return response()->json($highROIListings);
+}
+
 
 
 }
