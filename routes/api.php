@@ -64,6 +64,14 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
 
 
 
+
+
+    Route::post('/create-payment-intent', [PaymentController::class, 'createPaymentIntent']);
+    Route::post('/payment-success', [PaymentController::class, 'paymentSuccess']);
+
+
+
+
     // //List of Packages
     // Route::get('/packages', [PackagesController::class, 'index']);
 

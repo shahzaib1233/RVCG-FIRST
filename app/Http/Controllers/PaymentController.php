@@ -12,6 +12,46 @@ use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
+
+
+    public function __construct()
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+    }
+
+    public function createPaymentIntent(Request $request)
+    {
+        try {
+            $amount = $request->amount;
+            
+            // Create PaymentIntent
+            $paymentIntent = PaymentIntent::create([
+                'amount' => $amount * 100, // Amount in cents
+                'currency' => 'usd',
+                'automatic_payment_methods' => [
+                    'enabled' => true,
+                ],
+            ]);
+
+            return response()->json([
+                'clientSecret' => $paymentIntent->client_secret,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function paymentSuccess(Request $request)
+    {
+        // Handle successful payment
+        // Update your database, send confirmation emails, etc.
+        return response()->json(['status' => 'success']);
+    }
+
+
+
+
+    
     public function processPayment(Request $request)
     {
         // Validate the request
