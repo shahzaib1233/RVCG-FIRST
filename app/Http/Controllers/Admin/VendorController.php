@@ -11,7 +11,7 @@ class VendorController extends Controller
 {
     public function index()
     {
-        $vendors = Vendor::with('services')->get();
+        $vendors = Vendor::with('services' , 'user' )->get();
         return response()->json($vendors);
     }
 
@@ -55,7 +55,7 @@ class VendorController extends Controller
    
     public function show($id)
     {
-        $vendor = Vendor::with('services')->findOrFail($id);
+        $vendor = Vendor::with('services' , 'user')->findOrFail($id);
         return response()->json($vendor);
     }
 
