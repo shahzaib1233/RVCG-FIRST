@@ -108,7 +108,8 @@ public function index()
             'other_features.*' => 'exists:other_features,id', 
             'repair_cost' => 'nullable|numeric', // New Validation
             'wholesale_fee' => 'nullable|numeric', // New Validation
-            'Listing_media.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
+            'Listing_media' => 'nullable|array',
+            'Listing_media.*' => 'exists:temp_data,id',
             'price_per_square_feet' => 'nullable|numeric',
             'owner_full_name' => 'required|string|max:255',
             'owner_age' => 'nullable|numeric',
@@ -127,7 +128,7 @@ public function index()
             $validatedData['owner_property_documents'] = 'uploads/listings/owner_property_documents/' . $filename;
         }
         
-       
+
 
     //     $avg_price_per_sq_ft = Listing::where('city_id', $validatedData['city_id'])
     //     ->where('property_type_id', $validatedData['property_type_id'])
@@ -210,43 +211,44 @@ public function index()
         // }
         
 
-        if ($request->hasFile('Listing_media')) {
-            // Check if it's an array of files or a single file
-            $files = $request->file('Listing_media');  // this could be an array or a single file
-        
-            // Check if it's an array (multiple files)
-            if (is_array($files)) {
-                // dd($files);
-                foreach ($files as $file) {
-                    if ($file->isValid()) {
-                        
-                        $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                        $file->move(public_path('uploads/Listings/Image'), $fileName);
-        
+        if ($request->filled('Listing_media')) {
+            // Loop through each ID
+
+            foreach ($request->Listing_media as $tempId) {
+                // Find the temp data using the provided ID
+                $tempData = TempData::find($tempId);
+
+                if ($tempData) {
+                    $tempFilePath = public_path($tempData->file_url);
+                    $finalPath = public_path('uploads/Listings/Image/');
+
+                    // Check if directory exists, otherwise create it
+                    if (!is_dir($finalPath)) {
+                        mkdir($finalPath, 0777, true);
+                    }
+
+                    // Move the file to the final destination
+                    $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempFilePath, PATHINFO_EXTENSION);
+                    $finalFilePath = $finalPath . $newFileName;
+                    
+                    if (file_exists($tempFilePath)) {
+                        rename($tempFilePath, $finalFilePath);
+
+                        // Save the image in ListingMedia table
                         ListingMedia::create([
                             'listing_id' => $listing->id,
-                            'file_name' => $fileName,
-                            'file_url' => 'uploads/Listings/Image/' . $fileName,
-                            'media_type' => $file->getClientMimeType(),
+                            'file_name' => $newFileName,
+                            'file_url' => 'uploads/Listings/Image/' . $newFileName,
+                            'media_type' => mime_content_type($finalFilePath),
                         ]);
+
+                        // Delete the temp data record
+                        $tempData->delete();
                     }
                 }
-            } else {
-                // Handle if only one file is sent
-                if ($files->isValid()) {
-                    
-                    $fileName = time() . '_' . uniqid() . '.' . $files->getClientOriginalExtension();
-                    $files->move(public_path('uploads/Listings/Image'), $fileName);
-        
-                    ListingMedia::create([
-                        'listing_id' => $listing->id,
-                        'file_name' => $fileName,
-                        'file_url' => 'uploads/Listings/Image/' . $fileName,
-                        'media_type' => $files->getClientMimeType(),
-                    ]);
-                }
             }
-        } 
+        }
+
                 
         
         if ($listing) {
