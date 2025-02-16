@@ -88,12 +88,13 @@ class skiptraceController extends Controller
             'currency' => 'usd',
             'automatic_payment_methods' => [
                 'enabled' => true,
+                'allow_redirects' => 'never',
             ],
         ]);
 
         // Confirm the PaymentIntent
-        $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntent->id);
-        $paymentIntent->confirm();
+        // $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntent->id);
+        // $paymentIntent->confirm();
 
         // Check if payment was successful
         if ($paymentIntent->status === 'succeeded') {

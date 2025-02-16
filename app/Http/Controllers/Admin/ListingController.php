@@ -60,7 +60,7 @@ public function index()
 
     return response()->json($listings, 200);
 }
-
+ 
 
 
     public function store(Request $request)
@@ -946,9 +946,14 @@ public function Low_High_Roi_zone()
 
 //     return response()->json($highROIListings);
 // }
- $highROIListings = Listing::all()->filter(function ($listing) {
+$highROIListings = Listing::with('city') // Load city relationship
+    ->get()
+    ->filter(function ($listing) {
         return $listing->roi < 15; // Using accessor here
-    })->sortByDesc('roi')->values(); // Sort and reset array keys
+    })
+    ->sortByDesc('roi')
+    ->values(); // Sort and reset array keys
+
    
     if ($highROIListings->isEmpty()) {
         return response()->json(['message' => 'No high ROI zones found'], 404);

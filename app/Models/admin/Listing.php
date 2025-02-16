@@ -123,29 +123,31 @@ public function getOwnerPropertyDocumentsUrlAttribute()
     }
     return null;
 }
+
 public function getHidden()
-    {
-        // Check if the user is not an admin
-        if (Auth::user() && Auth::user()->role !== 'admin') {
-            // Check if the user has paid for this listing
-            $hasAccess = Skiptrace::where('user_id', Auth::id())
-                ->where('listing_id', $this->id)
-                    ->where('is_paid', true) // Ensure that the payment is completed
-                ->exists();
+{
+    // Check if the user is not logged in or not an admin
+    if (!Auth::check() || (Auth::user()->role !== 'admin')) {
+        // Check if the user has paid for this listing
+        $hasAccess = Auth::check() && Skiptrace::where('user_id', Auth::id())
+            ->where('listing_id', $this->id)
+            ->where('is_paid', true) // Ensure that the payment is completed
+            ->exists();
 
-            // If user does not have access, hide sensitive fields
-            if (!$hasAccess) {
-                return [
-                     'owner_age', 'owner_contact_number',
-                    'owner_email_address', 'owner_government_id_proof',
-                    'owner_property_ownership_proof', 'owner_ownership_type',
-                    'owner_property_documents'
-                ];
-            }
+        // If user does not have access, hide sensitive fields
+        if (!$hasAccess) {
+            return [
+                'owner_age', 'owner_contact_number',
+                'owner_email_address', 'owner_government_id_proof',
+                'owner_property_ownership_proof', 'owner_ownership_type',
+                'owner_property_documents'
+            ];
         }
-
-        // If user is admin or has access via skiptrace, show all fields
-        return [];
     }
+
+    // If user is admin or has access via skiptrace, show all fields
+    return [];
+}
+
 
 }

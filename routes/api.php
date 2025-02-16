@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Website\ListingsController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\PostController;
 use Illuminate\Support\Facades\Route;
@@ -351,12 +352,25 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
     
 
         //skip trace 
+        Route::post('/skiptrace', [SkipTraceController::class, 'store']);
         Route::put('/skiptrace/{id}', [skiptraceController::class, 'update']);
         Route::delete('/skiptrace/{id}', [SkiptraceController::class, 'destroy']);
         Route::get('/skiptrace', [SkiptraceController::class, 'index']);
 });
 
-Route::post('/admin/skiptrace', [SkipTraceController::class, 'store']);
+
+//webiste apis will run on website
+// Route::prefix('website')->group(function () {
+//     Route::get('listings', [ListingsController::class, 'index']);
+//     Route::get('listings/{id}', [ListingsController::class, 'show']);
+// });
+Route::prefix('website')->group(function () {
+    Route::get('listings', [ListingsController::class, 'index'])->middleware('auth:sanctum');
+    Route::get('listings/{id}', [ListingsController::class, 'show'])->middleware('auth:sanctum');
+});
+
+
+
 
 Route::get('/user', function (Request $request) {
     return $request->user();
