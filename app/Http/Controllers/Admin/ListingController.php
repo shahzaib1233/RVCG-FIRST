@@ -4,6 +4,7 @@ use App\Models\admin\ListingMedia;
 use App\Models\admin\propertyFeatures;
 use App\Models\admin\PropertyStatus;
 use App\Models\admin\Skiptrace;
+use App\Models\TempData;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -102,11 +103,9 @@ public function index()
             'geolocation_coordinates' => 'nullable|string',
             'zip_code' => 'nullable|string',
             'area' => 'nullable|string',
-            'gdrp_agreement' => 'nullable|string',
+            'gdrp_agreement' => 'nullable|numeric|exists:temp_data,id',  // Now accepting ID
             'other_features' => 'nullable|array',
             'other_features.*' => 'exists:other_features,id', 
-            'gdrp_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
-            // 'Listing_media' => 'nullable|array',
             'repair_cost' => 'nullable|numeric', // New Validation
             'wholesale_fee' => 'nullable|numeric', // New Validation
             'Listing_media.*' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
@@ -158,20 +157,35 @@ public function index()
         $listing = Listing::create(array_merge($validatedData, ['user_id' => $user_id ]));
     
        
-        if($listing)
-        {
-            if($request->file('gdrp_image'))
-            {
-                $image = $request->file('gdrp_image');
-                $imageName = time() . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-                $image->move(public_path('uploads/Listings/Image/gdrp'), $imageName);
-                $imagepath = 'uploads/Listings/Image/gdrp/' . $imageName;;
-                $listing->gdrp_agreement = $imagepath;
-                $listing->save();
+        if ($listing) {
+            // Check if gdrp_agreement ID is provided
+            if ($request->filled('gdrp_agreement')) {
+                // Find the temp data using the provided ID
+                $tempData = TempData::find($request->gdrp_agreement);
+    
+                if ($tempData) {
+                    $tempFilePath = public_path($tempData->file_url);
+                    $finalPath = public_path('uploads/Listings/Image/gdrp/');
+                    
+                    // Check if directory exists, otherwise create it
+                    if (!is_dir($finalPath)) {
+                        mkdir($finalPath, 0777, true);
+                    }
+    
+                    // Move the file to the final destination
+                    $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempFilePath, PATHINFO_EXTENSION);
+                    $finalFilePath = $finalPath . $newFileName;
+                    if (file_exists($tempFilePath)) {
+                        rename($tempFilePath, $finalFilePath);
+                        $listing->gdrp_agreement = 'uploads/Listings/Image/gdrp/' . $newFileName;
+                        $listing->save();
+                        
+                        // Delete the temp data record
+                        $tempData->delete();
+                    }
+                }
             }
-
         }
-
         // if ($request->hasFile('Listing_media')) {
         //     foreach ($request->file('Listing_media') as $file) {
         //         dd($file);

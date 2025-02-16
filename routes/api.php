@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Admin\VendorController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\TempDataController;
 use App\Http\Controllers\Website\ListingsController;
 use Illuminate\Http\Request;
 use App\Http\Controllers\PostController;
@@ -52,6 +53,9 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::delete('/listings/{id}', [ListingController::class, 'destroy']);
     //gdrp temp image store
     Route::post('/files_temp', [ListingController::class,'gdrpAggrement_temp']);
+
+
+    Route::post('temp_files' , [TempDataController::class, 'tempUpload']);
     //listing image store
     
 
