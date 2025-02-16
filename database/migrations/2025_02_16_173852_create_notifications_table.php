@@ -13,14 +13,14 @@ return new class extends Migration
     {
         Schema::create('notifications', function (Blueprint $table) {
             $table->id();
-            $table->string('type'); // Notification type (e.g., reminder, announcement)
-            $table->string('title'); // Notification title
-            $table->text('message'); // Notification content
-            $table->boolean('send_to_all')->default(false); // If the notification is for all users
-            $table->timestamp('scheduled_at')->nullable(); // Time to send the notification
-            $table->boolean('is_sent')->default(false);
+            $table->unsignedBigInteger('user_id');
+            $table->string('heading');
+            $table->text('title');
+            $table->boolean('read')->default(0);
             $table->timestamps();
-        });
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+          });
     }
 
     /**

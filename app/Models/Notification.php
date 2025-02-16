@@ -2,19 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Notification extends Model
 {
-    use HasFactory;
+    // Table Name (if different from model name)
+    protected $table = 'notifications';
 
+    // Fillable Fields
     protected $fillable = [
-        'type', 
-        'title', 
-        'message', 
-        'send_to_all', 
-        'scheduled_at', 
-        'is_sent'
+        'heading',
+        'title',
+        'read',
+        'redirect_link'
     ];
 }

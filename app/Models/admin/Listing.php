@@ -47,13 +47,26 @@ public function propertyType()
 
 public function getGdrpAgreementAttribute($value)
 {
-    return $value ? asset('uploads/Listings/Image/' . $value) : null;
+    return $value ? asset( $value) : null;
 }
 
 public function getOwnerPropertyDocumentsAttribute($value)
 {
     return $value ? asset('uploads/Listings/Owner_Property_Documents/' . $value) : null;
 }
+
+
+public function setOwnerPropertyDocumentsAttribute($value)
+{
+    if (is_file($value)) {
+        $filename = time() . '_' . $value->getClientOriginalName();
+        $value->move(public_path('uploads/Listings/Owner_Property_Documents'), $filename);
+        $this->attributes['owner_property_documents'] = 'uploads/Listings/Owner_Property_Documents/' . $filename;
+    } else {
+        $this->attributes['owner_property_documents'] = $value;
+    }
+}
+
 
 
 public function propertyStatus()

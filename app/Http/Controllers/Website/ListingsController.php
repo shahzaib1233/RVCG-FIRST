@@ -135,7 +135,7 @@ public function index(Request $request)
     }
 
     // Build the query for Listings
-    $listingsQuery = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features']);
+    $listingsQuery = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features' , 'media']);
 
     // If the user is logged in and has prioritized IDs
     if ($isLoggedIn && !empty($prioritizedIds)) {
@@ -173,7 +173,7 @@ public function NotLogin_index(Request $request)
     
     $prioritizedIds = [];
 
-    $listingsQuery = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features']);
+    $listingsQuery = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features' , 'media']);
 
   
     $listings = $listingsQuery->orderBy('id', 'desc')->get();
@@ -195,7 +195,7 @@ public function NotLogin_index(Request $request)
 
 public function show_non_logedin($id)
 {
-    $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+    $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features' , 'media'])
                       ->find($id);
 
     if (!$listing) {
@@ -220,11 +220,11 @@ public function show(Request $request, $id)
         ->get() : collect(); 
 
     if ($user && $user->role === 'admin') {
-        $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+        $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features' , 'media'])
                           ->find($id);
     } 
     else if ($user && !$skiptrace->isEmpty()) {
-        $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+        $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features' , 'media'])
                           ->find($id);
     }
     else {
@@ -272,7 +272,7 @@ public function show(Request $request, $id)
                             'moa',
                             'owner_full_name'
                         ])
-                        ->with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+                        ->with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features' , 'media'])
                         ->find($id);
     }
 

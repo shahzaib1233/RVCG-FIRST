@@ -360,6 +360,19 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
         Route::put('/skiptrace/{id}', [skiptraceController::class, 'update']);
         Route::delete('/skiptrace/{id}', [SkiptraceController::class, 'destroy']);
         Route::get('/skiptrace', [SkiptraceController::class, 'index']);
+
+
+
+        Route::post('/payment/create-intent', [SkipTraceController::class, 'createPaymentIntent']);
+        Route::post('/payment/store-transaction', [SkipTraceController::class, 'storeTransaction']);
+
+        //notification working
+
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::post('/notifications', [NotificationController::class, 'store']);
+        Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::get('/notifications/{id}/redirect', [NotificationController::class, 'getRedirectLink']);
+    
 });
 
 

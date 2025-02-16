@@ -63,19 +63,95 @@ class skiptraceController extends Controller
     }
 
 
-    public function store(Request $request)
+//     public function store(Request $request)
+// {
+//     $validator = Validator::make($request->all(), [
+//         'listing_id' => 'required|array', 
+//         'listing_id.*' => 'exists:listings,id', 
+//         'amount' => 'required|numeric|min:1', // Use amount from request
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json(['errors' => $validator->errors()], 422);
+//     } 
+
+//     $userId = Auth::id();
+//     $amount = $request->amount * 100; // Convert to cents for Stripe
+
+//     // Stripe Payment Logic
+//     \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+
+//     try {
+//         // Create PaymentIntent
+//         $paymentIntent = \Stripe\PaymentIntent::create([
+//             'amount' => $amount,  
+//             'currency' => 'usd',
+//             'automatic_payment_methods' => [
+//                 'enabled' => true,
+//                 'allow_redirects' => 'never',
+//             ],
+//         ]);
+
+//         // Confirm the PaymentIntent
+//         // $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntent->id);
+//         // $paymentIntent->confirm();
+
+//         // Check if payment was successful
+//         if ($paymentIntent->status === 'succeeded') {
+//             // Payment successful, store in payments table
+//             $payment = Payment::create([
+//                 'user_id' => $userId,
+//                 'amount' => $request->amount, // Store in dollars as received
+//                 'payment_status' => true,
+//                 'transaction_id' => $paymentIntent->client_secret,
+//             ]);
+
+//             // Insert into skiptrace table
+//             foreach ($request->listing_id as $listingId) {
+//                 $listing = Listing::find($listingId);
+
+//                 Skiptrace::create([
+//                     'listing_id' => $listing->id,
+//                     'user_id' => $userId,
+//                     'owner_name' => $listing->owner_name,
+//                     'owner_contact' => $listing->owner_contact,
+//                     'owner_email' => $listing->owner_email,
+//                     'is_paid' => true,
+//                     'payment_id' => $payment->id,
+//                 ]);
+//             }
+
+//             return response()->json([
+//                 'status' => 'success',
+//                 'message' => 'Payment successful and skiptrace records created.',
+//             ]);
+//         } else {
+//             return response()->json([
+//                 'status' => 'error',
+//                 'message' => 'Payment failed. Please try again.',
+//             ]);
+//         }
+//     } catch (\Stripe\Exception\ApiErrorException $e) {
+//         return response()->json(['error' => $e->getMessage()], 500);
+//     }
+// }
+
+    
+    
+    
+    
+    public function createPaymentIntent(Request $request)
 {
     $validator = Validator::make($request->all(), [
         'listing_id' => 'required|array', 
         'listing_id.*' => 'exists:listings,id', 
-        'amount' => 'required|numeric|min:1', // Use amount from request
+        'amount' => 'required|numeric|min:1', 
     ]);
 
     if ($validator->fails()) {
         return response()->json(['errors' => $validator->errors()], 422);
-    } 
+    }
 
-    $userId = Auth::id();
     $amount = $request->amount * 100; // Convert to cents for Stripe
 
     // Stripe Payment Logic
@@ -88,22 +164,57 @@ class skiptraceController extends Controller
             'currency' => 'usd',
             'automatic_payment_methods' => [
                 'enabled' => true,
-                'allow_redirects' => 'never',
             ],
         ]);
 
-        // Confirm the PaymentIntent
-        // $paymentIntent = \Stripe\PaymentIntent::retrieve($paymentIntent->id);
-        // $paymentIntent->confirm();
+        // Return client_secret to the frontend
+        return response()->json([
+            'status' => 'success',
+            'client_secret' => $paymentIntent->client_secret,
+            'payment_intent_id' => $paymentIntent->id,
+            'message' => 'Payment initiated. Confirm the payment on the frontend.'
+        ]);
+    } catch (\Stripe\Exception\ApiErrorException $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+}
+
+
+
+
+
+public function storeTransaction(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'payment_intent_id' => 'required|string',
+        'listing_id' => 'required|array', 
+        'listing_id.*' => 'exists:listings,id', 
+        'amount' => 'required|numeric|min:1',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+    $listing_id = $request->listing_id;
+     
+
+    $userId = Auth::id();
+
+    // Stripe Payment Logic
+    \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+
+    try {
+        // Retrieve PaymentIntent
+        $paymentIntent = \Stripe\PaymentIntent::retrieve($request->payment_intent_id);
 
         // Check if payment was successful
         if ($paymentIntent->status === 'succeeded') {
             // Payment successful, store in payments table
             $payment = Payment::create([
                 'user_id' => $userId,
-                'amount' => $request->amount, // Store in dollars as received
+                'amount' => $request->amount, 
                 'payment_status' => true,
-                'transaction_id' => $paymentIntent->client_secret,
+                'transaction_id' => $paymentIntent->id,
             ]);
 
             // Insert into skiptrace table
@@ -128,7 +239,7 @@ class skiptraceController extends Controller
         } else {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Payment failed. Please try again.',
+                'message' => 'Payment not completed. Please try again.',
             ]);
         }
     } catch (\Stripe\Exception\ApiErrorException $e) {
@@ -136,9 +247,8 @@ class skiptraceController extends Controller
     }
 }
 
-    
-    
-    
+
+
 
     public function update(Request $request, $id)
     {
