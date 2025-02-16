@@ -166,6 +166,49 @@ public function index(Request $request)
 
 
 
+
+public function NotLogin_index(Request $request)
+{
+    // Get authenticated user using Sanctum
+    
+    $prioritizedIds = [];
+
+    $listingsQuery = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features']);
+
+  
+    $listings = $listingsQuery->orderBy('id', 'desc')->get();
+
+    // Transform listings to add country name
+    $listings->transform(function ($listing) {
+        $listing->country_name = $listing->country->country_name;
+        return $listing;
+    });
+
+    // Prepare response with additional context
+    $responseData = [
+        'listings' => $listings,
+    ];
+
+    return response()->json($responseData, 200);
+}
+
+
+public function show_non_logedin($id)
+{
+    $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+                      ->find($id);
+
+    if (!$listing) {
+        return response()->json(['message' => 'Property Not Found'], 404);
+    }
+
+    $listing->country_name = $listing->country ? $listing->country->name : null;
+
+    return response()->json($listing);
+}
+
+
+
 public function show(Request $request, $id)
 {
     // Check if user is logged in

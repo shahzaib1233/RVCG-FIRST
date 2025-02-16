@@ -364,11 +364,21 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
 //     Route::get('listings', [ListingsController::class, 'index']);
 //     Route::get('listings/{id}', [ListingsController::class, 'show']);
 // });
-Route::prefix('website')->group(function () {
-    Route::get('listings', [ListingsController::class, 'index'])->middleware('auth:sanctum');
-    Route::get('listings/{id}', [ListingsController::class, 'show'])->middleware('auth:sanctum');
+
+
+//website login routes
+
+Route::prefix('website')->middleware('auth:sanctum')->group(function () {
+    Route::get('listings', [ListingsController::class, 'index']);
+    Route::get('listings/{id}', [ListingsController::class, 'show']);
 });
 
+
+
+Route::prefix('website')->group(function () {
+    Route::get('listing', [ListingsController::class, 'NotLogin_index']);
+    Route::get('listing/{id}', [ListingsController::class, 'show']);
+});
 
 
 
