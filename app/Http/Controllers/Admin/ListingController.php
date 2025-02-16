@@ -49,7 +49,7 @@ class ListingController extends Controller
 
 public function index()
 {
-    $listings = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+    $listings = Listing::with(['city','media', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
         ->orderBy('id', 'desc')
         ->get();
 

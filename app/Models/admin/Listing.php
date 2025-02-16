@@ -44,6 +44,18 @@ public function propertyType()
     return $this->belongsTo(PropertyType::class, 'property_type_id')->select('id', 'title');
 }
 
+
+public function getGdrpAgreementAttribute($value)
+{
+    return $value ? asset('uploads/Listings/Image/' . $value) : null;
+}
+
+public function getOwnerPropertyDocumentsAttribute($value)
+{
+    return $value ? asset('uploads/Listings/Owner_Property_Documents/' . $value) : null;
+}
+
+
 public function propertyStatus()
 {
     return $this->belongsTo(PropertyStatus::class, 'property_status_id')->select('id', 'status');
@@ -57,8 +69,9 @@ public function offers()
 
 public function media()
 {
-    return $this->belongsTo(ListingMedia::class, 'listing_id')->select('id', 'listing_id', 'file_name', 'file_url');
+    return $this->hasMany(ListingMedia::class, 'listing_id');
 }
+
 
 public function features()
 {

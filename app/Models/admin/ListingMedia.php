@@ -16,4 +16,11 @@ class ListingMedia extends Model
     {
         return $this->belongsTo(Listing::class);
     }
+
+    public function getFileUrlAttribute($value)
+{
+    return asset($value);
+}
+
+
 }
