@@ -14,6 +14,7 @@ class Notification extends Model
         'heading',
         'title',
         'read',
-        'redirect_link'
+        'redirect_link',
+        'user_id'
     ];
 }

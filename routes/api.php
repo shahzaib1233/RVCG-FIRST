@@ -177,6 +177,11 @@ Route::get('/packages/{id}', [PackagesController::class, 'show']);
 
     //send notification
     Route::post('/notifications', [NotificationController::class, 'store']);
+    //single user notification 
+    Route::get('/notifications/{id}', [NotificationController::class, 'index']);
+    //mark as read
+    Route::put('/notifications/{id}', [NotificationController::class, 'markAsRead']);
+    
 
 
 
