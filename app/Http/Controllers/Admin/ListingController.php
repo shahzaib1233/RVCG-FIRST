@@ -52,7 +52,7 @@ class ListingController extends Controller
 
 public function index()
 {
-    $listings = Listing::with(['city','media', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+    $listings = Listing::with(['city','media', 'user', 'country', 'propertyType', 'propertyStatus', 'features' , 'leadtypes'])
         ->orderBy('id', 'desc')
         ->get();
 
@@ -122,8 +122,7 @@ public function index()
             'owner_property_ownership_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
             'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-            'lead_types_id' => `required|exists:lead_types,id`,
-
+            'lead_types_id'=> 'required|exists:lead_types,id',
         ]);
         if ($request->hasFile('owner_property_documents')) {
             $file = $request->file('owner_property_documents');
@@ -215,7 +214,7 @@ public function index()
         // }
         
 
-        if ($request->filled('Listing_media')) {
+        if ($request->filled('Listing_media') && is_array($request->Listing_media)) {
             // Loop through each ID
 
             foreach ($request->Listing_media as $tempId) {
@@ -256,7 +255,7 @@ public function index()
                 
         
         if ($listing) {
-            if ($request->has('other_features') && count($request->other_features) > 0) {
+            if ($request->has('other_features') && is_array($validatedData['other_features']) && count($validatedData['other_features']) > 0) {
                 $propertyFeatures = [];
                 foreach ($validatedData['other_features'] as $feature_id) {
                     $propertyFeatures[] = [
@@ -346,6 +345,8 @@ public function index()
             Notification::create([
                 'user_id' => $userId,
                 'listing_id' => $listing->id,
+                'heading' => 'New Listing Match',
+                'title' => 'A new property that matches your preferences has been listed!',
                 'message' => 'A new property that matches your preferences has been listed!',
             ]);
         }
@@ -407,12 +408,12 @@ public function show($id)
     ->where('listing_id', $id)
     ->get();
 if (Auth::user()->role === 'admin') {
-        $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+        $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features' , 'leadtypes'])
                           ->find($id);
     } 
     else if(!$skiptrace->isEmpty())
     {
-        $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+        $listing = Listing::with(['city', 'leadtypes','user', 'country', 'propertyType', 'propertyStatus', 'features'])
         ->find($id);
     }
     else {
@@ -460,7 +461,7 @@ if (Auth::user()->role === 'admin') {
                             'moa',
                             'owner_full_name'
                         ])
-                        ->with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+                        ->with(['city','leadtypes', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
                         ->find($id);
     }
 

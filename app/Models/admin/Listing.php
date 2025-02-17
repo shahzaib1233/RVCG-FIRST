@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth; // Add this to use Auth
+use Illuminate\Database\Eloquent\Builder;
 
 class Listing extends Model
 {
@@ -174,6 +175,37 @@ public function getHidden()
     // If user is admin or has access via skiptrace, show all fields
     return [];
 }
+
+
+
+
+
+
+
+
+
+
+
+// Listing.php (Model)
+
+
+
+
+protected static function booted()
+    {
+        parent::boot();
+
+        // Automatically eager load 'leadtypes' when querying listings
+        static::addGlobalScope('leadtypes', function (Builder $builder) {
+            $builder->with('leadtypes');
+        });
+    }
+
+    public function leadtypes()
+    {
+        return $this->belongsTo(LeadType::class, 'lead_types_id');
+    }
+
 
 
 }

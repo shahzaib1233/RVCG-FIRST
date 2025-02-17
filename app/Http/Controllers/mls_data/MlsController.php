@@ -64,22 +64,18 @@ public function fetchData()
 
 public function filterListings(Request $request)
 {
-    // Fetch the data (could be from a cache or database if required)
     $data = $this->fetchData();
 
-    // Check if data is returned from the API
     if (!$data) {
         return response()->json(['error' => 'Failed to fetch data'], 500);
     }
 
-    // Check if 'Results' key exists in the fetched data
     if (!isset($data['Results'])) {
         return response()->json(['error' => 'Results key missing in API response'], 500);
     }
 
     $results = $data['Results'];
 
-    // Apply filters based on request parameters (if they exist)
     if ($request->has('address')) {
         $results = array_filter($results, function ($listing) use ($request) {
             return stripos($listing['FullStreetAddress'], $request->input('address')) !== false;
