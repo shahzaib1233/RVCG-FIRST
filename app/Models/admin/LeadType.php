@@ -9,7 +9,7 @@ class LeadType extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['type_name'];
+    protected $fillable = ['type_name' , 'description'];
 
     public function leads()
     {
