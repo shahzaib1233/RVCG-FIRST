@@ -3,6 +3,7 @@ namespace App\Http\Controllers\admin;
 use App\Models\admin\ListingMedia;
 use App\Models\admin\propertyFeatures;
 use App\Models\admin\PropertyStatus;
+use App\Models\admin\SavedProperty;
 use App\Models\admin\Skiptrace;
 use App\Models\TempData;
 use Illuminate\Support\Facades\Auth;
@@ -15,6 +16,8 @@ use App\Models\admin\PropertyType;
 use App\Models\admin\SearchHistory;
 use App\Models\admin\cities;
 use App\Models\admin\PropertyKpi;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 
 use  \Illuminate\Support\Facades\Facade;
@@ -267,6 +270,8 @@ public function index()
                     ], 500); 
                 }
             }
+            $this->notifyUsersAboutNewListing($listing);
+
     
             return response()->json($listing, 201);
         } else {
@@ -276,6 +281,75 @@ public function index()
         }
     }
     
+
+
+    //create notificastion if it si matching to users search and likes
+    private function notifyUsersAboutNewListing($listing)
+{
+    $users = User::all();
+
+    foreach ($users as $user) {
+        $userId = $user->id;
+
+        $favoriteListingIds = SavedProperty::where('user_id', $userId)
+            ->where('is_favourite', true)
+            ->pluck('listing_id')
+            ->toArray();
+
+        $frequentViewedIds = PropertyKpi::where('users_id', $userId)
+            ->orderBy('views', 'desc')
+            ->pluck('listing_id')
+            ->toArray();
+
+        $prioritizedIds = array_unique(array_merge($favoriteListingIds, $frequentViewedIds));
+
+        $interests = PropertyKpi::where('users_id', $userId)
+            ->select('listing_id')
+            ->with('listing')
+            ->get()
+            ->pluck('listing')
+            ->filter()
+            ->toArray();
+
+        $preferredPropertyTypes = array_column($interests, 'property_type_id');
+        $preferredCities = array_column($interests, 'city_id');
+        $preferredCountries = array_column($interests, 'country_id');
+        $preferredPriceRange = array_column($interests, 'price');
+
+        $matches = false;
+
+        if (in_array($listing->property_type_id, $preferredPropertyTypes)) {
+            $matches = true;
+        }
+
+        if (in_array($listing->city_id, $preferredCities)) {
+            $matches = true;
+        }
+
+        if (in_array($listing->country_id, $preferredCountries)) {
+            $matches = true;
+        }
+
+        // Optional: Check if price is within user's preferred price range
+        if (!empty($preferredPriceRange)) {
+            $averagePrice = array_sum($preferredPriceRange) / count($preferredPriceRange);
+            $priceDifference = abs($listing->price - $averagePrice);
+
+            if ($priceDifference <= ($averagePrice * 0.2)) { // 20% price range flexibility
+                $matches = true;
+            }
+        }
+
+        // Step 4: Notify Users if a Match is Found
+        if ($matches) {
+            Notification::create([
+                'user_id' => $userId,
+                'listing_id' => $listing->id,
+                'message' => 'A new property that matches your preferences has been listed!',
+            ]);
+        }
+    }
+}
 
 
 // public function store(Request $request)

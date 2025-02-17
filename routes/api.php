@@ -180,7 +180,7 @@ Route::get('/packages/{id}', [PackagesController::class, 'show']);
     //single user notification 
     Route::get('/notifications/{id}', [NotificationController::class, 'index']);
     //mark as read
-    Route::put('/notifications/{id}', [NotificationController::class, 'markAsRead']);
+    Route::put('/notifications', [NotificationController::class, 'markAsRead']);
     
 
 

@@ -22,7 +22,8 @@ class LeadTypeController extends Controller
 public function AddLeadType(Request $request)
 {
     $validate = $request->validate([
-        'type_name' => 'required|string|max:255'
+        'type_name' => 'required|string|max:255',
+         'description' => 'nullable|string'
     ]);
     
     // Create new lead type using validated data
@@ -39,7 +40,8 @@ public function EditLeadType(Request $request , $id)
 
     // Validate and update the lead type
     $validate = $request->validate([
-        'type_name' => 'required|string|max:255'
+        'type_name' => 'required|string|max:255',
+        'description' => 'nullable|string'
     ]);
     
     $leadType->update($validate);

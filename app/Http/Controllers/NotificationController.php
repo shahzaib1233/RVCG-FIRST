@@ -20,29 +20,29 @@ class NotificationController extends Controller
     }
 
     // Store New Notification
-    public function store(Request $request)
-    {
-        $request->validate([
-            'heading' => 'required|string|max:255',
-            'title' => 'required|string',
-            'redirect_link' => 'nullable|string',
-            'user_id' => 'required|integer'
-        ]);
+        public function store(Request $request)
+        {
+            $request->validate([
+                'heading' => 'required|string|max:255',
+                'title' => 'required|string',
+                'redirect_link' => 'nullable|string',
+                'user_id' => 'required|integer'
+            ]);
 
-        $notification = Notification::create([
-            'heading' => $request->heading,
-            'title' => $request->title,
-            'read' => 0,
-            'redirect_link' => $request->redirect_link,
-            'user_id'=>$request->user_id
-        ]);
+            $notification = Notification::create([
+                'heading' => $request->heading,
+                'title' => $request->title,
+                'read' => 0,
+                'redirect_link' => $request->redirect_link,
+                'user_id'=>$request->user_id
+            ]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Notification created successfully.',
-            'notification' => $notification
-        ]);
-    }
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Notification created successfully.',
+                'notification' => $notification
+            ]);
+        }
 
     // Mark Notification as Read
     public function markAsRead(Request $request)
