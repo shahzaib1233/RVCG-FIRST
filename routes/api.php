@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\PackagesItemsController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Admin\PropertyKpiController;
 use App\Http\Controllers\Admin\SavedPropertyController;
+use App\Http\Controllers\mls_data\MlsController;
 use App\Http\Controllers\PaymentController;
 
 Route::apiResource('post', PostController::class);
@@ -378,6 +379,10 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
         Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::get('/notifications/{id}/redirect', [NotificationController::class, 'getRedirectLink']);
     
+
+
+        //mls data third party
+        Route::get('/mls-data', [MlsController::class, 'index']);
 });
 
 

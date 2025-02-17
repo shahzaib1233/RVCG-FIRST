@@ -610,7 +610,7 @@ if (Auth::user()->role === 'admin') {
 
     $validatedData = $request->validate([
         'title' => 'required|string',
-        'description' => 'required|string',
+        'description' => 'nullable|string',
         'city_id' => 'required|exists:cities,id',
         'country_id' => 'required|exists:countries,id',
         'property_type_id' => 'required|exists:property_types,id',
@@ -621,19 +621,17 @@ if (Auth::user()->role === 'admin') {
         'parking' => 'nullable|string',
         'year_built' => 'nullable|integer',
         'lot_size' => 'nullable|numeric',
-        'longitude' => 'nullable|numeric',
-        'latitude' => 'nullable|numeric',
+        'longitude' => 'nullable|string',
+        'latitude' => 'nullable|string',
         'school_district' => 'nullable|string',
         'walkability_score' => 'nullable|integer',
         'crime_rate' => 'nullable|numeric',
-        'roi' => 'nullable|numeric',
         'monthly_rent' => 'nullable|numeric',
         'cap_rate' => 'nullable|numeric',
         'address' => 'nullable|string',
         'bedrooms' => 'nullable|integer',
         'bathrooms' => 'nullable|integer',
         'half_bathrooms' => 'nullable|integer',
-        'arv' => 'nullable|numeric',
         'gross_margin' => 'nullable|numeric',
         'is_featured' => 'nullable|in:0,1', 
         'is_approved' => 'nullable|in:0,1', 
@@ -641,13 +639,14 @@ if (Auth::user()->role === 'admin') {
         'geolocation_coordinates' => 'nullable|string',
         'zip_code' => 'nullable|string',
         'area' => 'nullable|string',
-        'gdrp_agreement' => 'nullable|string',
-        'other_features' => 'nullable|array', 
-        'repair_cost' => 'nullable|numeric', 
-        'wholesale_fee' => 'nullable|numeric', 
-        'other_features.*' => 'exists:other_features,id|integer',
-        'gdrp_image' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120',
-        'Listing_media.*' => 'file,|mimes:jpeg,png,jpg,gif,pdf,doc,docx,xls,xlsx,zip|max:5120', 
+        'gdrp_agreement' => 'nullable|numeric|exists:temp_data,id',  // Now accepting ID
+        'other_features' => 'nullable|array',
+        'other_features.*' => 'exists:other_features,id', 
+        'repair_cost' => 'nullable|numeric', // New Validation
+        'wholesale_fee' => 'nullable|numeric', // New Validation
+        'Listing_media' => 'nullable|array',
+        'Listing_media.*' => 'exists:temp_data,id',
+        'price_per_square_feet' => 'nullable|numeric',
         'owner_full_name' => 'required|string|max:255',
         'owner_age' => 'nullable|numeric',
         'owner_contact_number' => 'nullable|string|max:20',
@@ -656,7 +655,6 @@ if (Auth::user()->role === 'admin') {
         'owner_property_ownership_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
         'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        'price_per_square_feet' => 'required|numeric'
 
     ]);
 
