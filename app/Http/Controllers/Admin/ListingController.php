@@ -122,6 +122,7 @@ public function index()
             'owner_property_ownership_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
             'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'lead_types_id' => `required|exists:lead_types,id`,
 
         ]);
         if ($request->hasFile('owner_property_documents')) {
@@ -655,6 +656,7 @@ if (Auth::user()->role === 'admin') {
         'owner_property_ownership_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
         'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
         'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        'lead_types_id' => `required|exists:lead_types,id`,
 
     ]);
 
