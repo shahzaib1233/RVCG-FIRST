@@ -811,42 +811,44 @@ public function searchProperties(Request $request)
     $query = Listing::with(['city', 'media', 'user', 'country', 'propertyType', 'propertyStatus', 'features', 'leadtypes']);
         
     // Price range filter
-    if ($request->filled('price_min')) {
-        $query->where('price', '>=', $request->price_min);
-    }
-    if ($request->filled('price_max')) {
-        $query->where('price', '<=', $request->price_max);
-    }
+   // Price filter
+if ($request->filled('price_min') && $request->price_min !== "") {
+    $query->where('price', '>=', $request->price_min);
+}
+if ($request->filled('price_max') && $request->price_max !== "") {
+    $query->where('price', '<=', $request->price_max);
+}
 
-    // Address filter (city_id)
-    if ($request->filled('city')) {
-        $query->where('city_id', '=', $request->city);
-    }
+// Address filter (city_id)
+if ($request->filled('city') && $request->city !== "") {
+    $query->where('city_id', '=', $request->city);
+}
 
-    // Property type filter
-    if ($request->filled('property_type')) {
-        $query->where('property_type_id', '=', $request->property_type);
-    }
+// Property type filter
+if ($request->filled('property_type') && $request->property_type !== "") {
+    $query->where('property_type_id', '=', $request->property_type);
+}
 
-    // Bedrooms filter
-    if ($request->filled('bedrooms')) {
-        $query->where('bedrooms', '>=', $request->bedrooms);
-    }
+// Bedrooms filter
+if ($request->filled('bedrooms') && $request->bedrooms !== "") {
+    $query->where('bedrooms', '>=', $request->bedrooms);
+}
 
-    // Bathrooms filter
-    if ($request->filled('bathrooms')) {
-        $query->where('bathrooms', '>=', $request->bathrooms);
-    }
+// Bathrooms filter
+if ($request->filled('bathrooms') && $request->bathrooms !== "") {
+    $query->where('bathrooms', '>=', $request->bathrooms);
+}
 
-    // Square Foot filter
-    if ($request->filled('area_min')) {
-        $query->where('square_foot', '>=', $request->area_min);
-    }
+// Square Foot filter
+if ($request->filled('area_min') && $request->area_min !== "") {
+    $query->where('square_foot', '>=', $request->area_min);
+}
 
-    // Lead Type filter
-    if ($request->filled('lead_types_id')) {
-        $query->whereIn('lead_types_id', $request->lead_types_id);
-    }
+// Lead Type filter
+if ($request->filled('lead_types_id') && !empty($request->lead_types_id)) {
+    $query->whereIn('lead_types_id', $request->lead_types_id);
+}
+
     
 
     // Check if user is logged in
