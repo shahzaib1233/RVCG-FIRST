@@ -845,8 +845,9 @@ public function searchProperties(Request $request)
 
     // Lead Type filter
     if ($request->filled('lead_types_id')) {
-        $query->where('lead_types_id', '=', $request->lead_types_id);
+        $query->whereIn('lead_types_id', $request->lead_types_id);
     }
+    
 
     // Check if user is logged in
     if (Auth::check()) {
