@@ -31,7 +31,7 @@ class MlsController extends Controller
         }
 
         return response()->json([
-            'results' => $data['Results'] // Rename 'Results' to 'small_results'
+            'results' => $data['Results'] 
         ]);
     } else {
         return response()->json(['error' => 'Failed to fetch data'], 500);
@@ -63,6 +63,69 @@ public function fetchData()
         return null;
     }
 }
+
+
+
+
+
+
+
+public function filterData(Request $request)
+{
+    // Fetch data from the external API
+    $data = $this->fetchData();
+    
+    // Check if data is available
+    if (!$data) {
+        return response()->json(['error' => 'Failed to fetch data from API'], 500);
+    }
+
+    // Get the results array from the API response
+    $results = $data['Results'];
+
+    // Get filter parameters from the request
+    $status = $request->input('status');
+    $minPrice = $request->input('min_price');
+    $maxPrice = $request->input('max_price');
+    $minDate = $request->input('min_date');
+    $maxDate = $request->input('max_date');
+
+    // Filter the results
+    $filteredResults = array_filter($results, function ($item) use ($status, $minPrice, $maxPrice, $minDate, $maxDate) {
+        // Filter by Status
+        if ($status && isset($item['Status']) && $item['Status'] !== $status) {
+            return false;
+        }
+
+        // Filter by List Price
+        if ($minPrice && isset($item['ListPrice']) && $item['ListPrice'] < $minPrice) {
+            return false;
+        }
+        if ($maxPrice && isset($item['ListPrice']) && $item['ListPrice'] > $maxPrice) {
+            return false;
+        }
+
+        // Filter by ModifiedOn (Date Range)
+        if ($minDate && isset($item['ModifiedOn']) && $item['ModifiedOn'] < $minDate) {
+            return false;
+        }
+        if ($maxDate && isset($item['ModifiedOn']) && $item['ModifiedOn'] > $maxDate) {
+            return false;
+        }
+
+        return true;
+    });
+
+    // Reset array keys
+    $filteredResults = array_values($filteredResults);
+
+    // Return the filtered results as JSON
+    return response()->json([
+        'num_results' => count($filteredResults),
+        'results' => $filteredResults
+    ]);
+}
+
 
 
 
