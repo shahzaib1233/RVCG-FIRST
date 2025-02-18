@@ -808,8 +808,8 @@ if (Auth::user()->role === 'admin') {
 
 public function searchProperties(Request $request)
 {
-    $query = Listing::query();
-
+    $query = Listing::with(['city', 'media', 'user', 'country', 'propertyType', 'propertyStatus', 'features', 'leadtypes']);
+        
     // Price range filter
     if ($request->filled('price_min')) {
         $query->where('price', '>=', $request->price_min);

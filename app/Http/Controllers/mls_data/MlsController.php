@@ -62,50 +62,52 @@ public function fetchData()
     }
 }
 
+
+
 public function filterListings(Request $request)
 {
+    // Get the query text from the URL
+    $queryText = $request->query('query');
+
+    // Check if the query text is provided
+    if (!$queryText) {
+        return response()->json(['error' => 'Query parameter is required'], 400);
+    }
+
+    // Fetch data from the external API
     $data = $this->fetchData();
 
+    // Check if data is available
     if (!$data) {
-        return response()->json(['error' => 'Failed to fetch data'], 500);
+        return response()->json(['error' => 'Failed to fetch data from API'], 500);
     }
 
-    if (!isset($data['Results'])) {
-        return response()->json(['error' => 'Results key missing in API response'], 500);
-    }
-
+    // Get the results array from the API response
     $results = $data['Results'];
 
-    if ($request->has('address')) {
-        $results = array_filter($results, function ($listing) use ($request) {
-            return stripos($listing['FullStreetAddress'], $request->input('address')) !== false;
-        });
-    }
+    // Filter the results based on the query text
+    $filteredResults = array_filter($results, function ($item) use ($queryText) {
+        return (
+            (isset($item['CityName']) && stripos($item['CityName'], $queryText) !== false) ||
+            (isset($item['FullStreetAddress']) && stripos($item['FullStreetAddress'], $queryText) !== false) ||
+            (isset($item['ListPrice']) && is_numeric($queryText) && $item['ListPrice'] >= (float) $queryText) ||
+            (isset($item['LivingSquareFeet']) && stripos((string) $item['LivingSquareFeet'], $queryText) !== false) ||
+            (isset($item['OriginatingMls']) && stripos($item['OriginatingMls'], $queryText) !== false) ||
+            (isset($item['State']) && stripos($item['State'], $queryText) !== false) ||
+            (isset($item['StreetAddress']) && stripos($item['StreetAddress'], $queryText) !== false) ||
+            (isset($item['YearBuilt']) && stripos((string) $item['YearBuilt'], $queryText) !== false)
+        );
+    });
 
-    if ($request->has('title')) {
-        $results = array_filter($results, function ($listing) use ($request) {
-            return stripos($listing['FullStreetAddress'], $request->input('title')) !== false;
-        });
-    }
+    // Reset array keys
+    $filteredResults = array_values($filteredResults);
 
-    if ($request->has('min_price') && $request->has('max_price')) {
-        $minPrice = $request->input('min_price');
-        $maxPrice = $request->input('max_price');
-        $results = array_filter($results, function ($listing) use ($minPrice, $maxPrice) {
-            return $listing['ListPrice'] >= $minPrice && $listing['ListPrice'] <= $maxPrice;
-        });
-    }
-
-    // Add custom URL for each listing
-    foreach ($results as &$result) {
-        $customUrl = "https://homeasap.com/edwardgreen/agent/{$result['Id']}";
-        $result['CustomUrl'] = $customUrl;
-    }
-
-    // Reassign filtered results back to the data array
-    $data['Results'] = array_values($results);
-
-    return response()->json($data);
+    // Return the filtered results as JSON
+    return response()->json([
+        'query' => $queryText,
+        'num_results' => count($filteredResults),
+        'results' => $filteredResults
+    ]);
 }
 
 
