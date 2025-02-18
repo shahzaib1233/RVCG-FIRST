@@ -23,14 +23,16 @@ class MlsController extends Controller
         $data = $response->json();
 
         // Loop through each result and add custom URL
-        foreach ($data['results'] as &$result) {
+        foreach ($data['Results'] as &$result) {
             // Create the custom URL
             $customUrl = "https://homeasap.com/edwardgreen/agent/{$result['Id']}";
             // Add the new field to the JSON object
             $result['CustomUrl'] = $customUrl;
         }
 
-        return response()->json($data);
+        return response()->json([
+            'results' => $data['Results'] // Rename 'Results' to 'small_results'
+        ]);
     } else {
         return response()->json(['error' => 'Failed to fetch data'], 500);
     }
