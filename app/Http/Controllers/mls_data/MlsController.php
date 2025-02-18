@@ -23,7 +23,7 @@ class MlsController extends Controller
         $data = $response->json();
 
         // Loop through each result and add custom URL
-        foreach ($data['Results'] as &$result) {
+        foreach ($data['results'] as &$result) {
             // Create the custom URL
             $customUrl = "https://homeasap.com/edwardgreen/agent/{$result['Id']}";
             // Add the new field to the JSON object
