@@ -806,40 +806,46 @@ if (Auth::user()->role === 'admin') {
     }
 }
 
-    
-
 public function searchProperties(Request $request)
 {
     $query = Listing::query();
 
-    // Price filter (greater than or equal to price_min)
-    if ($request->has('price_min') && $request->price_min) {
+    // Price range filter
+    if ($request->filled('price_min')) {
         $query->where('price', '>=', $request->price_min);
+    }
+    if ($request->filled('price_max')) {
+        $query->where('price', '<=', $request->price_max);
     }
 
     // Address filter (city_id)
-    if ($request->has('city') && $request->city) {
+    if ($request->filled('city')) {
         $query->where('city_id', '=', $request->city);
     }
 
-    // Property type filter (property_type_id)
-    if ($request->has('property_type') && $request->property_type) {
+    // Property type filter
+    if ($request->filled('property_type')) {
         $query->where('property_type_id', '=', $request->property_type);
     }
 
-    // Bedrooms filter (greater than or equal to bedrooms)
-    if ($request->has('bedrooms') && $request->bedrooms) {
+    // Bedrooms filter
+    if ($request->filled('bedrooms')) {
         $query->where('bedrooms', '>=', $request->bedrooms);
     }
 
-    // Bathrooms filter (greater than or equal to bathrooms)
-    if ($request->has('bathrooms') && $request->bathrooms) {
+    // Bathrooms filter
+    if ($request->filled('bathrooms')) {
         $query->where('bathrooms', '>=', $request->bathrooms);
     }
 
-    // Square Foot filter (greater than or equal to area_min)
-    if ($request->has('area_min') && $request->area_min) {
+    // Square Foot filter
+    if ($request->filled('area_min')) {
         $query->where('square_foot', '>=', $request->area_min);
+    }
+
+    // Lead Type filter
+    if ($request->filled('lead_types_id')) {
+        $query->where('lead_types_id', '=', $request->lead_types_id);
     }
 
     // Check if user is logged in
@@ -854,11 +860,12 @@ public function searchProperties(Request $request)
         ]);
     }
 
-    // Get all the filtered properties (no pagination)
-    $properties = $query->get();
+    // Pagination for better performance
+    $properties = $query->get(); // 10 results per page
 
     return response()->json($properties);
 }
+
 
 
     public function getUserSearchHistory()

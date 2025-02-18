@@ -43,7 +43,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::get('/listings', [ListingController::class, 'index']);  
 
     //serch properties listing
-    Route::get('/listings/search', [ListingController::class, 'searchProperties']);
+    Route::post('/listings/search', [ListingController::class, 'searchProperties']);
     // Create a new listing
     Route::post('/listings', [ListingController::class, 'store']);  
     // Show a specific listing
