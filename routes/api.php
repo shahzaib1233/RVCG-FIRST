@@ -387,7 +387,7 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
         Route::get('/mls-data/search', [MlsController::class, 'filterListings']);
 
         //get all mls data
-        Route::get('mls/filter-data' ,  [MlsController::class,  'filterData']);
+        Route::post('mls/filter-data' ,  [MlsController::class,  'filterData']);
 });
 
 

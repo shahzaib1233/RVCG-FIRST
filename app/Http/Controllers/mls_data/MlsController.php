@@ -69,48 +69,57 @@ public function fetchData()
 
 
 
-
 public function filterData(Request $request)
 {
     // Fetch data from the external API
     $data = $this->fetchData();
-    
-    // Check if data is available
-    if (!$data) {
-        return response()->json(['error' => 'Failed to fetch data from API'], 500);
+
+    // Check if data is available and has results
+    if (!isset($data['results']) || !is_array($data['results'])) {
+        return response()->json(['error' => 'Invalid API response'], 500);
     }
 
-    // Get the results array from the API response
-    $results = $data['Results'];
+    $results = $data['results'];
 
-    // Get filter parameters from the request
-    $status = $request->input('status');
-    $minPrice = $request->input('min_price');
-    $maxPrice = $request->input('max_price');
-    $minDate = $request->input('min_date');
-    $maxDate = $request->input('max_date');
+    // Get filter parameters from the request body
+    $mlsStatus = $request->input('mlsStatus');
+    $minDaysOnMarket = $request->input('daysOnMarket.min');
+    $maxDaysOnMarket = $request->input('daysOnMarket.max');
+    $minListingPrice = $request->input('listingPrice.min');
+    $maxListingPrice = $request->input('listingPrice.max');
+    $keywords = $request->input('keywords', []);
 
-    // Filter the results
-    $filteredResults = array_filter($results, function ($item) use ($status, $minPrice, $maxPrice, $minDate, $maxDate) {
-        // Filter by Status
-        if ($status && isset($item['Status']) && $item['Status'] !== $status) {
+    // Filter results
+    $filteredResults = array_filter($results, function ($item) use ($mlsStatus, $minDaysOnMarket, $maxDaysOnMarket, $minListingPrice, $maxListingPrice, $keywords) {
+        // Filter by MLS Status
+        if ($mlsStatus && isset($item['Status']) && strcasecmp($item['Status'], $mlsStatus) !== 0) {
             return false;
         }
 
-        // Filter by List Price
-        if ($minPrice && isset($item['ListPrice']) && $item['ListPrice'] < $minPrice) {
+        // Filter by Days on Market
+        if ($minDaysOnMarket && isset($item['DaysOnMarket']) && is_numeric($item['DaysOnMarket']) && $item['DaysOnMarket'] < $minDaysOnMarket) {
             return false;
         }
-        if ($maxPrice && isset($item['ListPrice']) && $item['ListPrice'] > $maxPrice) {
+        if ($maxDaysOnMarket && isset($item['DaysOnMarket']) && is_numeric($item['DaysOnMarket']) && $item['DaysOnMarket'] > $maxDaysOnMarket) {
             return false;
         }
 
-        // Filter by ModifiedOn (Date Range)
-        if ($minDate && isset($item['ModifiedOn']) && $item['ModifiedOn'] < $minDate) {
+        // Filter by Listing Price
+        if ($minListingPrice && isset($item['ListPrice']) && is_numeric($item['ListPrice']) && $item['ListPrice'] < $minListingPrice) {
             return false;
         }
-        if ($maxDate && isset($item['ModifiedOn']) && $item['ModifiedOn'] > $maxDate) {
+        if ($maxListingPrice && isset($item['ListPrice']) && is_numeric($item['ListPrice']) && $item['ListPrice'] > $maxListingPrice) {
             return false;
+        }
+
+        // Filter by Keywords in Tags
+        if (!empty($keywords) && isset($item['Tags']) && is_array($item['Tags'])) {
+            $tagNames = array_map(fn($tag) => strtolower($tag['Name']), $item['Tags']); // Convert all tag names to lowercase
+            $matched = array_filter($keywords, fn($keyword) => in_array(strtolower($keyword), $tagNames));
+
+            if (empty($matched)) {
+                return false;
+            }
         }
 
         return true;
@@ -125,8 +134,6 @@ public function filterData(Request $request)
         'results' => $filteredResults
     ]);
 }
-
-
 
 
 public function filterListings(Request $request)
