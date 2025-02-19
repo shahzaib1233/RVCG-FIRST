@@ -69,20 +69,30 @@ class MlsController extends Controller
             if ($maxDaysOnMarket && isset($item['DaysOnMarket']) && is_numeric($item['DaysOnMarket']) && $item['DaysOnMarket'] > $maxDaysOnMarket) {
                 return false;
             }
-            if ($minListingPrice && isset($item['ListingPrice']) && is_numeric($item['ListingPrice']) && $item['ListingPrice'] < $minListingPrice) {
+            if ($minListingPrice && isset($item['ListPrice']) && is_numeric($item['ListPrice']) && $item['ListPrice'] < $minListingPrice) {
                 return false;
             }
-            if ($maxListingPrice && isset($item['ListingPrice']) && is_numeric($item['ListingPrice']) && $item['ListingPrice'] > $maxListingPrice) {
+            if ($maxListingPrice && isset($item['ListPrice']) && is_numeric($item['ListPrice']) && $item['ListPrice'] > $maxListingPrice) {
                 return false;
             }
-            if (!empty($keywords) && isset($item['Description'])) {
+            if (!empty($keywords) && isset($item['Tags']) && is_array($item['Tags'])) {
                 foreach ($keywords as $keyword) {
-                    if (stripos($item['Description'], $keyword) === false) {
-                        return false;
+                    $found = false;
+                    foreach ($item['Tags'] as $tag) {
+                        if (isset($tag['Name']) && is_string($tag['Name']) && stripos($tag['Name'], $keyword) !== false) {
+                            $found = true;
+                            break; // Stop checking once a match is found
+                        }
+                    }
+                    if (!$found) {
+                        return false; // If any keyword is not found in Tags' Name field, exclude this item
                     }
                 }
             }
             return true;
+            
+            
+            
         });
 
         return response()->json(["results" => array_values($filteredResults)]);
