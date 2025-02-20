@@ -74,7 +74,6 @@ public function index()
                 'error' => 'Unauthorized. Please log in.',
             ], 401); 
         }
-        $gdrp_agreement = $request->gdrp_image;
     
         $validatedData = $request->validate([
             'title' => 'required|string',
@@ -107,7 +106,6 @@ public function index()
             'geolocation_coordinates' => 'nullable|string',
             'zip_code' => 'nullable|string',
             'area' => 'nullable|string',
-            'gdrp_agreement' => $gdrp_agreement,  // Now accepting ID
             'other_features' => 'nullable|array',
             'other_features.*' => 'exists:other_features,id', 
             'repair_cost' => 'nullable|numeric', // New Validation
@@ -125,6 +123,8 @@ public function index()
             'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'lead_types_id'=> 'required|exists:lead_types,id',
         ]);
+        $request->merge(['gdrp_agreement' => $request->gdrp_image]);
+
         if ($request->hasFile('owner_property_documents')) {
             $file = $request->file('owner_property_documents');
             $filename = time() . '_' . $file->getClientOriginalName();
