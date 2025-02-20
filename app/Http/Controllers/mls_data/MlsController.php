@@ -114,4 +114,42 @@ class MlsController extends Controller
         return response()->json(["results" => array_values($filteredResults)]);
     }
 
+
+
+
+
+
+
+    public function filter_Data(Request $request)
+    {
+        $data = $this->fetchData();
+    
+        if (!$data || !isset($data['Results']) || !is_array($data['Results'])) {
+            return response()->json(['error' => 'Invalid API response', 'data' => $data], 500);
+        }
+    
+        $results = $data['Results'];
+    
+        // Get search query from URL (?query=something)
+        $searchQuery = $request->query('query', '');
+    
+        if (!$searchQuery) {
+            return response()->json(["results" => $results]); // Return all if no query
+        }
+    
+        // Filter results dynamically based on the search query
+        $filteredResults = array_filter($results, function ($item) use ($searchQuery) {
+            foreach ($item as $key => $value) {
+                if (is_string($value) && stripos($value, $searchQuery) !== false) {
+                    return true; // Found a match in any column
+                } elseif (is_numeric($value) && stripos((string) $value, $searchQuery) !== false) {
+                    return true; // Match numeric values as well
+                }
+            }
+            return false;
+        });
+    
+        return response()->json(["results" => array_values($filteredResults)]);
+    }
+    
 }
