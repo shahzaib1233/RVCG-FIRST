@@ -705,28 +705,27 @@ if (Auth::user()->role === 'admin') {
     }
 
     if ($request->filled('listing_media') && is_array($request->listing_media)) {
-        // Loop through each ID
-
         foreach ($request->listing_media as $tempId) {
             // Find the temp data using the provided ID
             $tempData = TempData::find($tempId);
-
+    
             if ($tempData) {
                 $tempFilePath = public_path($tempData->file_url);
                 $finalPath = public_path('uploads/Listings/Image/');
-
+    
                 // Check if directory exists, otherwise create it
                 if (!is_dir($finalPath)) {
                     mkdir($finalPath, 0777, true);
                 }
-
-                // Move the file to the final destination
+    
+                // Generate a unique file name
                 $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempFilePath, PATHINFO_EXTENSION);
                 $finalFilePath = $finalPath . $newFileName;
-                
+    
                 if (file_exists($tempFilePath)) {
+                    // Move the file to the final destination
                     rename($tempFilePath, $finalFilePath);
-
+    
                     // Save the image in ListingMedia table
                     ListingMedia::create([
                         'listing_id' => $listing->id,
@@ -734,13 +733,14 @@ if (Auth::user()->role === 'admin') {
                         'file_url' => 'uploads/Listings/Image/' . $newFileName,
                         'media_type' => mime_content_type($finalFilePath),
                     ]);
-
+    
                     // Delete the temp data record
                     $tempData->delete();
                 }
             }
         }
     }
+    
 
     // Update Listing
     $listing->update(array_merge($validatedData, ['user_id' => $user_id  ]));
