@@ -106,12 +106,13 @@ public function index()
             'geolocation_coordinates' => 'nullable|string',
             'zip_code' => 'nullable|string',
             'area' => 'nullable|string',
+            'gdrp_agreement' => 'nullable|numeric|exists:temp_data,id',  // Now accepting ID
             'other_features' => 'nullable|array',
             'other_features.*' => 'exists:other_features,id', 
             'repair_cost' => 'nullable|numeric', // New Validation
             'wholesale_fee' => 'nullable|numeric', // New Validation
-            'Listing_media' => 'nullable|array',
-            'Listing_media.*' => 'exists:temp_data,id',
+            'listing_media' => 'nullable|array',
+            'listing_media.*' => 'exists:temp_data,id',
             'price_per_square_feet' => 'nullable|numeric',
             'owner_full_name' => 'required|string|max:255',
             'owner_age' => 'nullable|numeric',
@@ -123,8 +124,6 @@ public function index()
             'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'lead_types_id'=> 'required|exists:lead_types,id',
         ]);
-        $request->merge(['gdrp_agreement' => $request->gdrp_image]);
-
         if ($request->hasFile('owner_property_documents')) {
             $file = $request->file('owner_property_documents');
             $filename = time() . '_' . $file->getClientOriginalName();
@@ -191,8 +190,8 @@ public function index()
                 }
             }
         }
-        // if ($request->hasFile('Listing_media')) {
-        //     foreach ($request->file('Listing_media') as $file) {
+        // if ($request->hasFile('listing_media')) {
+        //     foreach ($request->file('listing_media') as $file) {
         //         dd($file);
 
         //         // Ensure the file is valid
@@ -215,10 +214,10 @@ public function index()
         // }
         
 
-        if ($request->filled('Listing_media') && is_array($request->Listing_media)) {
+        if ($request->filled('listing_media') && is_array($request->listing_media)) {
             // Loop through each ID
 
-            foreach ($request->Listing_media as $tempId) {
+            foreach ($request->listing_media as $tempId) {
                 // Find the temp data using the provided ID
                 $tempData = TempData::find($tempId);
 
@@ -647,8 +646,8 @@ if (Auth::user()->role === 'admin') {
         'other_features.*' => 'exists:other_features,id', 
         'repair_cost' => 'nullable|numeric', // New Validation
         'wholesale_fee' => 'nullable|numeric', // New Validation
-        'Listing_media' => 'nullable|array',
-        'Listing_media.*' => 'exists:temp_data,id',
+        'listing_media' => 'nullable|array',
+        'listing_media.*' => 'exists:temp_data,id',
         'price_per_square_feet' => 'nullable|numeric',
         'owner_full_name' => 'required|string|max:255',
         'owner_age' => 'nullable|numeric',
@@ -705,7 +704,7 @@ if (Auth::user()->role === 'admin') {
         $listing->gdrp_agreement = $imagePath . $imageName;
     }
 
-    if ($request->hasFile('Listing_media')) {
+    if ($request->hasFile('listing_media')) {
         $oldMedia = ListingMedia::where('listing_id', $id)->get();
         foreach ($oldMedia as $media) {
             if (file_exists(public_path($media->file_url))) {
@@ -714,7 +713,7 @@ if (Auth::user()->role === 'admin') {
             $media->delete();
         }
 
-        foreach ($request->file('Listing_media') as $file) {
+        foreach ($request->file('listing_media') as $file) {
             if ($file->isValid()) {
                 $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
                 $filePath = 'uploads/Listings/Image/';
