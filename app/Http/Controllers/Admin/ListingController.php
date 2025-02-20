@@ -190,8 +190,8 @@ public function index()
                 }
             }
         }
-        // if ($request->hasFile('listing_media')) {
-        //     foreach ($request->file('listing_media') as $file) {
+        // if ($request->hasFile('Listing_media')) {
+        //     foreach ($request->file('Listing_media') as $file) {
         //         dd($file);
 
         //         // Ensure the file is valid
