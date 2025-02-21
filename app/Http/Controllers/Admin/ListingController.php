@@ -845,7 +845,7 @@ public function update(Request $request, $id)
         'owner_contact_number' => 'nullable|string|max:20',
         'owner_email_address' => 'nullable|email|max:255',
         'owner_government_id_proof' => 'nullable|string',
-        // 'owner_property_documents' => 'nullable|numeric|exists:temp_data,id',
+        'owner_property_documents' => 'nullable|numeric|exists:temp_data,id',
         'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
         'lead_types_id' => 'required|exists:lead_types,id',
     ]);
@@ -872,7 +872,7 @@ public function update(Request $request, $id)
         $tempData = TempData::find($request->owner_property_documents);
         if ($tempData && file_exists(public_path($tempData->file_url))) {
             $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempData->file_url, PATHINFO_EXTENSION);
-            $finalPath = 'uploads/Listings/Image/' . $newFileName;
+            $finalPath = 'uploads/Listings/Image/owner_property_documents' . $newFileName;
 
             rename(public_path($tempData->file_url), public_path($finalPath));
 
