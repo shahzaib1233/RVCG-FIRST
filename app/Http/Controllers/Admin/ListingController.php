@@ -809,7 +809,6 @@ if (Auth::user()->role === 'admin') {
 
 
 
-
 public function update(Request $request, $id)
 {
     if (!Auth::check()) {
@@ -846,7 +845,7 @@ public function update(Request $request, $id)
         'owner_contact_number' => 'nullable|string|max:20',
         'owner_email_address' => 'nullable|email|max:255',
         'owner_government_id_proof' => 'nullable|string',
-        'owner_property_documents' => 'nullable|numeric|exists:temp_data,id', // Now handled as TempData ID
+        'owner_property_documents' => 'nullable|numeric|exists:temp_data,id', // Expecting ID, not file
         'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
         'lead_types_id' => 'required|exists:lead_types,id',
     ]);
@@ -905,6 +904,7 @@ public function update(Request $request, $id)
 
     return response()->json(['message' => 'Listing updated successfully.', 'listing' => $listing], 200);
 }
+
 
 
 
