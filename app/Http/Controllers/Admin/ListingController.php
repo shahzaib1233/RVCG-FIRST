@@ -218,27 +218,31 @@ public function index()
         
         if ($request->filled('owner_property_documents')) {
             $tempData = TempData::find($request->owner_property_documents);
-
+        
             if ($tempData) {
                 $tempFilePath = public_path($tempData->file_url);
-                $finalPath = public_path('uploads/Listings/Image/owner_property_documents/');
-                
-                if (!is_dir($finalPath)) {
-                    mkdir($finalPath, 0777, true);
+                $finalDir = public_path('uploads/Listings/Image/owner_property_documents/');
+        
+                if (!is_dir($finalDir)) {
+                    mkdir($finalDir, 0777, true);
                 }
-
+        
                 $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempFilePath, PATHINFO_EXTENSION);
-                $finalFilePath = $finalPath . $newFileName;
+                $finalFilePath = $finalDir . $newFileName;
+        
                 if (file_exists($tempFilePath)) {
                     rename($tempFilePath, $finalFilePath);
-                    $listing->owner_property_documents = 'uploads/Listings/Image/owner_property_documents/' . $newFileName;
-                    $listing->save();
                     
+                    // Store only the filename instead of the full path
+                    $listing->owner_property_documents = $newFileName;
+                    $listing->save();
+        
                     // Delete the temp data record
                     $tempData->delete();
                 }
             }
         }
+        
 
 
 
