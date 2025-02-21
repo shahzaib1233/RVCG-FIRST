@@ -48,8 +48,9 @@ public function propertyType()
 
 public function getGdrpAgreementAttribute($value)
 {
-    return $value ? asset( $value) : null;
+    return $value ? asset(trim($value, '/')) : null;
 }
+
 
 public function getOwnerPropertyDocumentsAttribute($value)
 {
