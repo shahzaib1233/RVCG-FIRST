@@ -828,14 +828,14 @@ if (Auth::user()->role === 'admin') {
 public function update(Request $request, $id)
 {
     if (!Auth::check()) {
-        return response()->json([
-            'error' => 'Unauthorized. Please log in to update the listing.'
-        ], 401); 
+        return response()->json(['error' => 'Unauthorized. Please log in to update the listing.'], 401);
     }
-    $listing = listing::find($id);
+
+    $listing = Listing::find($id);
     if (!$listing) {
         return response()->json(['error' => 'Listing not found.'], 404);
     }
+
     $validatedData = $request->validate([
         'title' => 'required|string',
         'description' => 'nullable|string',
@@ -868,94 +868,89 @@ public function update(Request $request, $id)
         'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
         'lead_types_id' => 'required|exists:lead_types,id',
     ]);
+
     $user_id = Auth::id();
-    $listing = Listing::find($id);
-    if (!$listing) {
-        return response()->json(['error' => 'Listing not found.'], 404);
-    }
-    if ($request->hasFile('gdrp_agreement')) {
+
+    // ✅ Update listing first
+    $listing->update(array_merge($validatedData, ['user_id' => $user_id]));
+
+    // ✅ Handle GDPR agreement file
+    if ($request->filled('gdrp_agreement')) {
         $tempData = TempData::find($request->gdrp_agreement);
-    
-        if ($tempData && file_exists(public_path($tempData->file_url))) {
-            // Extract the original file name without the timestamp
-            $originalName = pathinfo($tempData->file_url, PATHINFO_FILENAME);
-            $extension = pathinfo($tempData->file_url, PATHINFO_EXTENSION);
-    
-            // Generate a new file name with a timestamp to prevent conflicts
-            $newFileName = $originalName . '_' . time() . '.' . $extension;
-            $finalPath = 'uploads/Listings/Image/' . $newFileName;
-    
-            // Move the existing file to the new location with the updated name
-            if (@rename(public_path($tempData->file_url), public_path($finalPath))) {
-                // Save the new file path in the validated data
-                $validatedData['gdrp_agreement'] = $finalPath;
-    
-                // Delete the temporary record after successfully renaming the file
-                $tempData->delete();
-            } else {
-                return response()->json(['error' => 'File update failed.'], 500);
+        if ($tempData) {
+            $tempFilePath = public_path($tempData->file_url);
+            $finalDirectory = public_path('uploads/Listings/Image/gdrp/');
+
+            if (!is_dir($finalDirectory)) {
+                mkdir($finalDirectory, 0777, true);
             }
-        } else {
-            return response()->json(['error' => 'File not found.'], 404);
-        }
-    }
-    
-    
-    if ($request->filled('owner_property_documents')) {
-        try {
-            // Find the temp data using the provided ID
-            $tempData = TempData::findOrFail($request->owner_property_documents);
-    
-            // Base directory
-            $baseDir = 'uploads/Listings/Image/owner_property_documents/';
-    
-            // Generate unique filename
-            $extension = pathinfo($tempData->file_url, PATHINFO_EXTENSION);
-            $newFileName = now()->timestamp . '_' . Str::random(10) . '.' . $extension;
-    
-            // Full path for storage
-            $finalPath = $baseDir . $newFileName;
-    
-            // Ensure directory exists
-            Storage::makeDirectory($baseDir);
-    
-            // Move file
-            Storage::move($tempData->file_url, $finalPath);
-    
-            // Update listing with precise path
-            $listing->owner_property_documents = $finalPath;
-            $listing->save();
-    
-        } catch (\Exception $e) {
-            \Log::error('Owner Property Documents Upload Error', [
-                'error' => $e->getMessage(),
-                'temp_data_id' => $request->owner_property_documents
-            ]);
+
+            $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempFilePath, PATHINFO_EXTENSION);
+            $finalFilePath = $finalDirectory . $newFileName;
+
+            if (file_exists($tempFilePath)) {
+                if (copy($tempFilePath, $finalFilePath)) {
+                    unlink($tempFilePath);
+                    $listing->gdrp_agreement = 'uploads/Listings/Image/gdrp/' . $newFileName;
+                }
+            }
         }
     }
 
-    
+    // ✅ Handle Owner Property Documents file
+    if ($request->filled('owner_property_documents')) {
+        $tempData = TempData::find($request->owner_property_documents);
+        if ($tempData) {
+            $tempFilePath = public_path($tempData->file_url);
+            $finalDirectory = public_path('uploads/Listings/Image/owner_property_documents/');
+
+            if (!is_dir($finalDirectory)) {
+                mkdir($finalDirectory, 0777, true);
+            }
+
+            $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempFilePath, PATHINFO_EXTENSION);
+            $finalFilePath = $finalDirectory . $newFileName;
+
+            if (file_exists($tempFilePath)) {
+                if (copy($tempFilePath, $finalFilePath)) {
+                    unlink($tempFilePath);
+                    $listing->owner_property_documents = 'uploads/Listings/Image/owner_property_documents/' . $newFileName;
+                }
+            }
+        }
+    }
+
+    // ✅ Handle Listing Media
     if ($request->has('listing_media') && is_array($request->listing_media)) {
+        // Clear old media
+        ListingMedia::where('listing_id', $listing->id)->delete();
+
         foreach ($request->listing_media as $tempId) {
             $tempData = TempData::find($tempId);
             if ($tempData && file_exists(public_path($tempData->file_url))) {
                 $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempData->file_url, PATHINFO_EXTENSION);
                 $finalPath = 'uploads/Listings/Image/' . $newFileName;
-                rename(public_path($tempData->file_url), public_path($finalPath));
-                ListingMedia::create(['listing_id' => $listing->id, 'file_name' => $newFileName, 'file_url' => $finalPath]);
-                $tempData->delete();
+
+                if (copy(public_path($tempData->file_url), public_path($finalPath))) {
+                    unlink(public_path($tempData->file_url));
+                    ListingMedia::create([
+                        'listing_id' => $listing->id,
+                        'file_name' => $newFileName,
+                        'file_url' => $finalPath
+                    ]);
+                    $tempData->delete();
+                }
             }
         }
     }
-    $listing->update(array_merge($validatedData, ['user_id' => $user_id]));
+
+    // ✅ Sync other features
     if ($request->has('other_features') && is_array($request->other_features)) {
         $listing->propertyFeatures()->sync($validatedData['other_features']);
     }
+
     return response()->json(['message' => 'Listing updated successfully.', 'listing' => $listing], 200);
-
 }
-
-
 
 
 

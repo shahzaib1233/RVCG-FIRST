@@ -52,6 +52,7 @@ public function getGdrpAgreementAttribute($value)
 }
 
 
+
 public function getOwnerPropertyDocumentsAttribute($value)
 {
     return $value ? asset( $value) : null;
