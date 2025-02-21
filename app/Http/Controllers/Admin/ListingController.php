@@ -441,7 +441,7 @@ public function show($id)
     ->where('listing_id', $id)
     ->get();
 if (Auth::user()->role === 'admin') {
-        $listing = Listing::with(['city', 'user', 'country', 'propertyType', 'propertyStatus', 'features' , 'leadtypes'])
+        $listing = Listing::with(['city', 'user', 'country', 'propertyType',  'media' , 'propertyStatus', 'features' , 'leadtypes'])
                           ->find($id);
     } 
     else if(!$skiptrace->isEmpty())
@@ -850,7 +850,7 @@ public function update(Request $request, $id)
         'owner_contact_number' => 'nullable|string|max:20',
         'owner_email_address' => 'nullable|email|max:255',
         'owner_government_id_proof' => 'nullable|string',
-        'owner_property_documents' => 'nullable|numeric|exists:temp_data,id',
+        'owner_property_documents' => 'nullable|numeric',
         'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
         'lead_types_id' => 'required|exists:lead_types,id',
     ]);
@@ -869,6 +869,16 @@ public function update(Request $request, $id)
             $tempData->delete();
         }
     }
+    if($request->has('owner_property_documents')) {
+        $tempData = TempData::find($request->owner_property_documents);
+        if ($tempData && file_exists(public_path($tempData->file_url))) {
+            $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempData->file_url, PATHINFO_EXTENSION);
+            $finalPath = 'uploads/Listings/Image/owner_property_documents/' . $newFileName;
+            rename(public_path($tempData->file_url), public_path($finalPath));
+            $validatedData['owner_property_documents'] = $finalPath;
+            $tempData->delete();
+        }
+    }
     if ($request->has('listing_media') && is_array($request->listing_media)) {
         foreach ($request->listing_media as $tempId) {
             $tempData = TempData::find($tempId);
@@ -879,16 +889,6 @@ public function update(Request $request, $id)
                 ListingMedia::create(['listing_id' => $listing->id, 'file_name' => $newFileName, 'file_url' => $finalPath]);
                 $tempData->delete();
             }
-        }
-    }
-    if($request->has('owner_property_documents')) {
-        $tempData = TempData::find($request->owner_property_documents);
-        if ($tempData && file_exists(public_path($tempData->file_url))) {
-            $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempData->file_url, PATHINFO_EXTENSION);
-            $finalPath = 'uploads/Listings/Image/owner_property_documents/' . $newFileName;
-            rename(public_path($tempData->file_url), public_path($finalPath));
-            $validatedData['owner_property_documents'] = $finalPath;
-            $tempData->delete();
         }
     }
     $listing->update(array_merge($validatedData, ['user_id' => $user_id]));
