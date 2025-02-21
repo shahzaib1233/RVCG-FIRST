@@ -870,19 +870,25 @@ public function update(Request $request, $id)
     // **Handle Owner Property Documents**
     if ($request->has('owner_property_documents')) {
         $tempData = TempData::find($request->owner_property_documents);
+    
         if ($tempData && file_exists(public_path($tempData->file_url))) {
             $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempData->file_url, PATHINFO_EXTENSION);
-            $finalPath = 'uploads/Listings/Image/owner_property_documents' . $newFileName;
-
+            $finalPath = 'uploads/Listings/Image/' . $newFileName;
+    
             rename(public_path($tempData->file_url), public_path($finalPath));
-
-            $validatedData['owner_property_documents'] = $finalPath;
+    
+            $request->merge(['owner_property_documents' => $finalPath]); // Update request data
             $tempData->delete();
         } else {
             return response()->json(['error' => 'Invalid owner_property_documents ID.'], 400);
         }
     }
-
+    
+    // Now validate after processing the file
+    $validatedData = $request->validate([
+        'owner_property_documents' => 'nullable|string',
+    ]);
+    
     // **Handle Listing Media**
     if ($request->has('listing_media') && is_array($request->listing_media)) {
         foreach ($request->listing_media as $tempId) {
