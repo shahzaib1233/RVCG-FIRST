@@ -57,15 +57,14 @@ public function getOwnerPropertyDocumentsAttribute($value)
     return $value ? asset( $value) : null;
 }
 
-
 public function setOwnerPropertyDocumentsAttribute($value)
 {
-    if (is_file($value)) {
+    if ($value instanceof \Illuminate\Http\UploadedFile) {
         $filename = time() . '_' . $value->getClientOriginalName();
-        $value->move(public_path('uploads/Listings/Owner_Property_Documents'), $filename);
-        $this->attributes['owner_property_documents'] = 'uploads/Listings/Owner_Property_Documents/' . $filename;
+        $value->move(public_path('uploads/Listings/owner_property_documents'), $filename);
+        $this->attributes['owner_property_documents'] = 'uploads/Listings/owner_property_documents/' . $filename;
     } else {
-        $this->attributes['owner_property_documents'] = $value;
+        $this->attributes['owner_property_documents'] = $value; // Already stored path
     }
 }
 
