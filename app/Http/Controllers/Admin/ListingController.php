@@ -845,7 +845,7 @@ public function update(Request $request, $id)
         'owner_contact_number' => 'nullable|string|max:20',
         'owner_email_address' => 'nullable|email|max:255',
         'owner_government_id_proof' => 'nullable|string',
-        'owner_property_documents' => 'nullable|numeric|exists:temp_data,id',
+        // 'owner_property_documents' => 'nullable|numeric|exists:temp_data,id',
         'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
         'lead_types_id' => 'required|exists:lead_types,id',
     ]);
