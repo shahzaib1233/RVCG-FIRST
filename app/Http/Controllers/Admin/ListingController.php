@@ -885,7 +885,7 @@ public function update(Request $request, $id)
         $tempData = TempData::find($request->owner_property_documents);
         if ($tempData && file_exists(public_path($tempData->file_url))) {
             $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempData->file_url, PATHINFO_EXTENSION);
-            $finalPath = 'uploads/Listings/Image/owner_property_documents' . $newFileName;
+            $finalPath = 'uploads/Listings/Image/owner_property_documents/' . $newFileName;
             rename(public_path($tempData->file_url), public_path($finalPath));
             $validatedData['owner_property_documents'] = $finalPath;
             $tempData->delete();
