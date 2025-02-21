@@ -845,7 +845,7 @@ public function update(Request $request, $id)
         'owner_contact_number' => 'nullable|string|max:20',
         'owner_email_address' => 'nullable|email|max:255',
         'owner_government_id_proof' => 'nullable|string',
-        'owner_property_documents' => 'nullable|exists:temp_data,id',
+        'owner_property_documents' => 'nullable|numeric',
         'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
         'lead_types_id' => 'required|exists:lead_types,id',
     ]);
@@ -877,18 +877,14 @@ public function update(Request $request, $id)
     
             rename(public_path($tempData->file_url), public_path($finalPath));
     
-            $request->merge(['owner_property_documents' => $finalPath]); // Update request data
+            $validatedData['owner_property_documents'] = $finalPath;
             $tempData->delete();
         } else {
             return response()->json(['error' => 'Invalid owner_property_documents ID.'], 400);
         }
     }
     
-    // Now validate after processing the file
-    $validatedData = $request->validate([
-        'owner_property_documents' => 'nullable|string',
-    ]);
-    
+
     // **Handle Listing Media**
     if ($request->has('listing_media') && is_array($request->listing_media)) {
         foreach ($request->listing_media as $tempId) {
