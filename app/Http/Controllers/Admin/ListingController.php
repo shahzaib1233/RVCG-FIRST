@@ -828,7 +828,9 @@ if (Auth::user()->role === 'admin') {
 public function update(Request $request, $id)
 {
     if (!Auth::check()) {
-        return response()->json(['error' => 'Unauthorized. Please log in to update the listing.'], 401);
+        return response()->json([
+            'error' => 'Unauthorized. Please log in to update the listing.'
+        ], 401);
     }
 
     $listing = Listing::find($id);
@@ -864,17 +866,14 @@ public function update(Request $request, $id)
         'owner_contact_number' => 'nullable|string|max:20',
         'owner_email_address' => 'nullable|email|max:255',
         'owner_government_id_proof' => 'nullable|string',
-        'owner_property_documents' => 'nullable|numeric',
+        'owner_property_documents' => 'nullable|numeric|exists:temp_data,id',
         'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
         'lead_types_id' => 'required|exists:lead_types,id',
     ]);
 
     $user_id = Auth::id();
 
-    // ✅ Update listing first
-    $listing->update(array_merge($validatedData, ['user_id' => $user_id]));
-
-    // ✅ Handle GDPR agreement file
+    // Handle GDPR agreement file
     if ($request->filled('gdrp_agreement')) {
         $tempData = TempData::find($request->gdrp_agreement);
         if ($tempData) {
@@ -889,15 +888,13 @@ public function update(Request $request, $id)
             $finalFilePath = $finalDirectory . $newFileName;
 
             if (file_exists($tempFilePath)) {
-                if (copy($tempFilePath, $finalFilePath)) {
-                    unlink($tempFilePath);
-                    $listing->gdrp_agreement = 'uploads/Listings/Image/gdrp/' . $newFileName;
-                }
+                rename($tempFilePath, $finalFilePath);
+                $listing->gdrp_agreement = 'uploads/Listings/Image/gdrp/' . $newFileName;
             }
         }
     }
 
-    // ✅ Handle Owner Property Documents file
+    // Handle Owner Property Documents file
     if ($request->filled('owner_property_documents')) {
         $tempData = TempData::find($request->owner_property_documents);
         if ($tempData) {
@@ -912,45 +909,51 @@ public function update(Request $request, $id)
             $finalFilePath = $finalDirectory . $newFileName;
 
             if (file_exists($tempFilePath)) {
-                if (copy($tempFilePath, $finalFilePath)) {
-                    unlink($tempFilePath);
-                    $listing->owner_property_documents = 'uploads/Listings/Image/owner_property_documents/' . $newFileName;
-                }
+                rename($tempFilePath, $finalFilePath);
+                $listing->owner_property_documents = 'uploads/Listings/Image/owner_property_documents/' . $newFileName;
             }
         }
     }
 
-    // ✅ Handle Listing Media
+    // Handle Listing Media
     if ($request->has('listing_media') && is_array($request->listing_media)) {
-        // Clear old media
-        ListingMedia::where('listing_id', $listing->id)->delete();
-
         foreach ($request->listing_media as $tempId) {
             $tempData = TempData::find($tempId);
             if ($tempData && file_exists(public_path($tempData->file_url))) {
                 $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempData->file_url, PATHINFO_EXTENSION);
                 $finalPath = 'uploads/Listings/Image/' . $newFileName;
+                rename(public_path($tempData->file_url), public_path($finalPath));
 
-                if (copy(public_path($tempData->file_url), public_path($finalPath))) {
-                    unlink(public_path($tempData->file_url));
-                    ListingMedia::create([
-                        'listing_id' => $listing->id,
-                        'file_name' => $newFileName,
-                        'file_url' => $finalPath
-                    ]);
-                    $tempData->delete();
-                }
+                ListingMedia::create([
+                    'listing_id' => $listing->id,
+                    'file_name' => $newFileName,
+                    'file_url' => $finalPath
+                ]);
+
+                $tempData->delete();
             }
         }
     }
 
-    // ✅ Sync other features
+    // **Fix: Explicitly remove 'gdrp_agreement' and 'owner_property_documents' from $validatedData**
+    unset($validatedData['gdrp_agreement']);
+    unset($validatedData['owner_property_documents']);
+
+    // **Update the Listing with Correct Data**
+    $listing->update(array_merge($validatedData, [
+        'user_id' => $user_id,
+        'gdrp_agreement' => $listing->gdrp_agreement, 
+        'owner_property_documents' => $listing->owner_property_documents 
+    ]));
+
+    // Sync other features
     if ($request->has('other_features') && is_array($request->other_features)) {
         $listing->propertyFeatures()->sync($validatedData['other_features']);
     }
 
     return response()->json(['message' => 'Listing updated successfully.', 'listing' => $listing], 200);
 }
+
 
 
 
