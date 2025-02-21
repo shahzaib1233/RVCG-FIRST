@@ -850,7 +850,7 @@ public function update(Request $request, $id)
         'owner_contact_number' => 'nullable|string|max:20',
         'owner_email_address' => 'nullable|email|max:255',
         'owner_government_id_proof' => 'nullable|string',
-        'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+        'owner_property_documents' => 'nullable|numeric|exists:temp_data,id',
         'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
         'lead_types_id' => 'required|exists:lead_types,id',
     ]);
@@ -881,12 +881,22 @@ public function update(Request $request, $id)
             }
         }
     }
+    if($request->has('owner_property_documents')) {
+        $tempData = TempData::find($request->owner_property_documents);
+        if ($tempData && file_exists(public_path($tempData->file_url))) {
+            $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempData->file_url, PATHINFO_EXTENSION);
+            $finalPath = 'uploads/Listings/Image/owner_property_documents' . $newFileName;
+            rename(public_path($tempData->file_url), public_path($finalPath));
+            $validatedData['owner_property_documents'] = $finalPath;
+            $tempData->delete();
+        }
+    }
     $listing->update(array_merge($validatedData, ['user_id' => $user_id]));
     if ($request->has('other_features') && is_array($request->other_features)) {
         $listing->propertyFeatures()->sync($validatedData['other_features']);
     }
     return response()->json(['message' => 'Listing updated successfully.', 'listing' => $listing], 200);
-    
+
 }
 
 
