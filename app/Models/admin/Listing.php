@@ -54,7 +54,7 @@ public function getGdrpAgreementAttribute($value)
 
 public function getOwnerPropertyDocumentsAttribute($value)
 {
-    return $value ? asset('uploads/Listings/Owner_Property_Documents/' . $value) : null;
+    return $value ? asset( $value) : null;
 }
 
 

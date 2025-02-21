@@ -21,6 +21,9 @@ use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 
 use  \Illuminate\Support\Facades\Facade;
+
+use Illuminate\Support\Str;
+
 class ListingController extends Controller
 {
 
@@ -166,31 +169,31 @@ public function index()
        
         if ($listing) {
             // Check if gdrp_agreement ID is provided
-            if ($request->filled('gdrp_agreement')) {
-                // Find the temp data using the provided ID
-                $tempData = TempData::find($request->gdrp_agreement);
-    
-                if ($tempData) {
-                    $tempFilePath = public_path($tempData->file_url);
-                    $finalPath = public_path('uploads/Listings/Image/gdrp/');
-                    
-                    // Check if directory exists, otherwise create it
-                    if (!is_dir($finalPath)) {
-                        mkdir($finalPath, 0777, true);
-                    }
-    
-                    // Move the file to the final destination
-                    $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempFilePath, PATHINFO_EXTENSION);
-                    $finalFilePath = $finalPath . $newFileName;
-                    if (file_exists($tempFilePath)) {
-                        rename($tempFilePath, $finalFilePath);
-                        $listing->gdrp_agreement = 'uploads/Listings/Image/gdrp/' . $newFileName;
-                        $listing->save();
+                if ($request->filled('gdrp_agreement')) {
+                    // Find the temp data using the provided ID
+                    $tempData = TempData::find($request->gdrp_agreement);
+        
+                    if ($tempData) {
+                        $tempFilePath = public_path($tempData->file_url);
+                        $finalPath = public_path('uploads/Listings/Image/gdrp/');
                         
-                        // Delete the temp data record
-                        $tempData->delete();
+                        // Check if directory exists, otherwise create it
+                        if (!is_dir($finalPath)) {
+                            mkdir($finalPath, 0777, true);
+                        }
+        
+                        // Move the file to the final destination
+                        $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempFilePath, PATHINFO_EXTENSION);
+                        $finalFilePath = $finalPath . $newFileName;
+                        if (file_exists($tempFilePath)) {
+                            rename($tempFilePath, $finalFilePath);
+                            $listing->gdrp_agreement = 'uploads/Listings/Image/gdrp/' . $newFileName;
+                            $listing->save();
+                            
+                            // Delete the temp data record
+                            // $tempData->delete();
+                        }
                     }
-                }
             }
         }
         // if ($request->hasFile('Listing_media')) {
@@ -221,31 +224,42 @@ public function index()
         
             if ($tempData) {
                 $tempFilePath = public_path($tempData->file_url);
-                $finalDir = public_path('uploads/Listings/Image/owner_property_documents/');
+                $finalDirectory = public_path('uploads/Listings/Image/owner_property_documents/');
         
-                if (!is_dir($finalDir)) {
-                    mkdir($finalDir, 0777, true);
+                // Log file paths for debugging
+                \Log::info('Temp File Path: ' . $tempFilePath);
+                \Log::info('Final Directory: ' . $finalDirectory);
+        
+                // Check if directory exists, otherwise create it
+                if (!is_dir($finalDirectory)) {
+                    mkdir($finalDirectory, 0777, true);
                 }
         
-                $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempFilePath, PATHINFO_EXTENSION);
-                $finalFilePath = $finalDir . $newFileName;
+                // Get original file name
+                $originalFileName = pathinfo($tempFilePath, PATHINFO_BASENAME);
+                $finalFilePath = $finalDirectory . $originalFileName;
         
+                // Check if temp file exists before copying
                 if (file_exists($tempFilePath)) {
-                    rename($tempFilePath, $finalFilePath);
-                    
-                    // Store only the filename instead of the full path
-                    $listing->owner_property_documents = $newFileName;
+                    copy($tempFilePath, $finalFilePath); // Copy file instead of renaming
+        
+                    // Save relative path to database
+                    $listing->owner_property_documents = 'uploads/Listings/Image/owner_property_documents/' . $originalFileName;
                     $listing->save();
         
-                    // Delete the temp data record
-                    $tempData->delete();
+                    // Log success
+                    \Log::info('File Copied Successfully: ' . $finalFilePath);
+                } else {
+                    \Log::error('File not found: ' . $tempFilePath);
                 }
+            } else {
+                \Log::error('TempData not found for ID: ' . $request->owner_property_documents);
             }
         }
+                
         
-
-
-
+        
+        
         
         if ($request->filled('listing_media') && is_array($request->listing_media)) {
             // Loop through each ID
@@ -446,7 +460,7 @@ if (Auth::user()->role === 'admin') {
     } 
     else if(!$skiptrace->isEmpty())
     {
-        $listing = Listing::with(['city', 'leadtypes','user', 'country', 'propertyType', 'propertyStatus', 'features'])
+        $listing = Listing::with(['city', 'leadtypes','user', 'country', 'propertyType','media' , 'propertyStatus', 'features'])
         ->find($id);
     }
     else {
@@ -494,7 +508,7 @@ if (Auth::user()->role === 'admin') {
                             'moa',
                             'owner_full_name'
                         ])
-                        ->with(['city','leadtypes', 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
+                        ->with(['city','leadtypes','media' , 'user', 'country', 'propertyType', 'propertyStatus', 'features'])
                         ->find($id);
     }
 
@@ -859,26 +873,68 @@ public function update(Request $request, $id)
     if (!$listing) {
         return response()->json(['error' => 'Listing not found.'], 404);
     }
-    if ($request->has('gdrp_agreement')) {
+    if ($request->hasFile('gdrp_agreement')) {
         $tempData = TempData::find($request->gdrp_agreement);
+    
         if ($tempData && file_exists(public_path($tempData->file_url))) {
-            $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempData->file_url, PATHINFO_EXTENSION);
+            // Extract the original file name without the timestamp
+            $originalName = pathinfo($tempData->file_url, PATHINFO_FILENAME);
+            $extension = pathinfo($tempData->file_url, PATHINFO_EXTENSION);
+    
+            // Generate a new file name with a timestamp to prevent conflicts
+            $newFileName = $originalName . '_' . time() . '.' . $extension;
             $finalPath = 'uploads/Listings/Image/' . $newFileName;
-            rename(public_path($tempData->file_url), public_path($finalPath));
-            $validatedData['gdrp_agreement'] = $finalPath;
-            $tempData->delete();
+    
+            // Move the existing file to the new location with the updated name
+            if (@rename(public_path($tempData->file_url), public_path($finalPath))) {
+                // Save the new file path in the validated data
+                $validatedData['gdrp_agreement'] = $finalPath;
+    
+                // Delete the temporary record after successfully renaming the file
+                $tempData->delete();
+            } else {
+                return response()->json(['error' => 'File update failed.'], 500);
+            }
+        } else {
+            return response()->json(['error' => 'File not found.'], 404);
         }
     }
-    if($request->has('owner_property_documents')) {
-        $tempData = TempData::find($request->owner_property_documents);
-        if ($tempData && file_exists(public_path($tempData->file_url))) {
-            $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempData->file_url, PATHINFO_EXTENSION);
-            $finalPath = 'uploads/Listings/Image/owner_property_documents/' . $newFileName;
-            rename(public_path($tempData->file_url), public_path($finalPath));
-            $validatedData['owner_property_documents'] = $finalPath;
-            $tempData->delete();
+    
+    
+    if ($request->filled('owner_property_documents')) {
+        try {
+            // Find the temp data using the provided ID
+            $tempData = TempData::findOrFail($request->owner_property_documents);
+    
+            // Base directory
+            $baseDir = 'uploads/Listings/Image/owner_property_documents/';
+    
+            // Generate unique filename
+            $extension = pathinfo($tempData->file_url, PATHINFO_EXTENSION);
+            $newFileName = now()->timestamp . '_' . Str::random(10) . '.' . $extension;
+    
+            // Full path for storage
+            $finalPath = $baseDir . $newFileName;
+    
+            // Ensure directory exists
+            Storage::makeDirectory($baseDir);
+    
+            // Move file
+            Storage::move($tempData->file_url, $finalPath);
+    
+            // Update listing with precise path
+            $listing->owner_property_documents = $finalPath;
+            $listing->save();
+    
+        } catch (\Exception $e) {
+            \Log::error('Owner Property Documents Upload Error', [
+                'error' => $e->getMessage(),
+                'temp_data_id' => $request->owner_property_documents
+            ]);
         }
     }
+
+    
     if ($request->has('listing_media') && is_array($request->listing_media)) {
         foreach ($request->listing_media as $tempId) {
             $tempData = TempData::find($tempId);
