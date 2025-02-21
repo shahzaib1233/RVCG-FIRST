@@ -121,15 +121,18 @@ public function index()
             'owner_government_id_proof' => 'nullable|string',
             'owner_property_ownership_proof' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'owner_ownership_type' => 'nullable|in:Freehold,Leasehold,Joint Ownership',
-            'owner_property_documents' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'owner_property_documents' => 'nullable|numeric|exists:temp_data,id',
             'lead_types_id'=> 'required|exists:lead_types,id',
         ]);
-        if ($request->hasFile('owner_property_documents')) {
-            $file = $request->file('owner_property_documents');
-            $filename = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/listings/owner_property_documents'), $filename);
-            $validatedData['owner_property_documents'] = 'uploads/listings/owner_property_documents/' . $filename;
-        }
+        // if ($request->hasFile('owner_property_documents')) {
+        //     $file = $request->file('owner_property_documents');
+        //     $filename = time() . '_' . $file->getClientOriginalName();
+        //     $file->move(public_path('uploads/listings/owner_property_documents'), $filename);
+        //     $validatedData['owner_property_documents'] = 'uploads/listings/owner_property_documents/' . $filename;
+        // }
+
+
+        
         
 
 
@@ -213,7 +216,33 @@ public function index()
         //     }
         // }
         
+        if ($request->filled('owner_property_documents')) {
+            $tempData = TempData::find($request->owner_property_documents);
 
+            if ($tempData) {
+                $tempFilePath = public_path($tempData->file_url);
+                $finalPath = public_path('uploads/Listings/Image/owner_property_documents/');
+                
+                if (!is_dir($finalPath)) {
+                    mkdir($finalPath, 0777, true);
+                }
+
+                $newFileName = time() . '_' . uniqid() . '.' . pathinfo($tempFilePath, PATHINFO_EXTENSION);
+                $finalFilePath = $finalPath . $newFileName;
+                if (file_exists($tempFilePath)) {
+                    rename($tempFilePath, $finalFilePath);
+                    $listing->owner_property_documents = 'uploads/Listings/Image/owner_property_documents/' . $newFileName;
+                    $listing->save();
+                    
+                    // Delete the temp data record
+                    $tempData->delete();
+                }
+            }
+        }
+
+
+
+        
         if ($request->filled('listing_media') && is_array($request->listing_media)) {
             // Loop through each ID
 
@@ -822,12 +851,7 @@ public function update(Request $request, $id)
         return response()->json(['error' => 'Listing not found.'], 404);
     }
 
-    if ($request->hasFile('owner_property_documents')) {
-        $file = $request->file('owner_property_documents');
-        $filename = time() . '_' . $file->getClientOriginalName();
-        $file->move(public_path('uploads/listings/owner_property_documents'), $filename);
-        $validatedData['owner_property_documents'] = 'uploads/listings/owner_property_documents/' . $filename;
-    }
+    
 
     if ($request->has('listing_media') && is_array($request->listing_media)) {
         foreach ($request->listing_media as $tempId) {
