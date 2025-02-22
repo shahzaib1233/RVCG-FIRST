@@ -17,27 +17,41 @@ class MlsController extends Controller
     private function fetchData()
     {
         $response = Http::get($this->apiUrl);
-
+    
         // Log raw response for debugging
         Log::info('Raw API Response:', ['response' => $response->body()]);
-
+    
         if ($response->successful()) {
-            return $response->json();
+            $data = $response->json();
+    
+            // Check if 'Results' key exists and contains listings
+            if (isset($data['Results']) && is_array($data['Results'])) {
+                foreach ($data['Results'] as &$item) {
+                    if (isset($item['Id'])) { // Correcting key case
+                        $item['CustomUrl'] = "https://homeasap.com/edwardgreen/agent/{$item['Id']}";
+                    }
+                }
+            }
+    
+            return $data;
         }
-
+    
         Log::error('API Request Failed', ['status' => $response->status(), 'response' => $response->body()]);
         return null;
     }
-
-    // Index function to return raw data
+    
+    // Index function to return formatted data
     public function index()
     {
         $data = $this->fetchData();
         if (!$data) {
             return response()->json(['error' => 'Failed to fetch data'], 500);
         }
+        
+        // Ensure only the 'Results' array is returned
         return response()->json(['results' => $data['Results'] ?? []]);
     }
+    
 
     // Filter data based on user input
     public function filterData(Request $request)
