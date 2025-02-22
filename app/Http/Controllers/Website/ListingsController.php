@@ -68,10 +68,8 @@ class ListingsController extends Controller
 public function index(Request $request)
 {
     // Get authenticated user using Sanctum
-    $user = Auth::user();
-if (!$user) {
-    return response()->json(["message" => "Unauthorized. Please login first."], 401);
-}
+
+    
 
     $user = $request->user();
     $prioritizedIds = [];
