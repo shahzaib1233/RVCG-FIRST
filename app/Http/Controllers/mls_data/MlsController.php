@@ -66,7 +66,7 @@ class MlsController extends Controller
 
     // Get the page number from the request, default is 1
     $page = $request->query('page', 1);
-    $perPage = 50; // Number of records per page
+    $perPage = 20; // Number of records per page
 
     // Calculate the offset
     $offset = ($page - 1) * $perPage;
