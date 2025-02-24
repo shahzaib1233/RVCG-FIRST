@@ -41,16 +41,48 @@ class MlsController extends Controller
     }
     
     // Index function to return formatted data
-    public function index()
-    {
-        $data = $this->fetchData();
-        if (!$data) {
-            return response()->json(['error' => 'Failed to fetch data'], 500);
-        }
+    // public function index()
+    // {
+    //     $data = $this->fetchData();
+    //     if (!$data) {
+    //         return response()->json(['error' => 'Failed to fetch data'], 500);
+    //     }
         
-        // Ensure only the 'Results' array is returned
-        return response()->json(['results' => $data['Results'] ?? []]);
+    //     // Ensure only the 'Results' array is returned
+    //     return response()->json(['results' => $data['Results'] ?? []]);
+    // }
+
+
+
+    public function index(Request $request)
+{
+    $data = $this->fetchData();
+    
+    if (!$data) {
+        return response()->json(['error' => 'Failed to fetch data'], 500);
     }
+
+    $results = $data['Results'] ?? [];
+
+    // Get the page number from the request, default is 1
+    $page = $request->query('page', 1);
+    $perPage = 50; // Number of records per page
+
+    // Calculate the offset
+    $offset = ($page - 1) * $perPage;
+
+    // Paginate results
+    $paginatedResults = array_slice($results, $offset, $perPage);
+
+    return response()->json([
+        'results' => $paginatedResults,
+        'current_page' => $page,
+        'total_records' => count($results),
+        'total_pages' => ceil(count($results) / $perPage)
+    ]);
+}
+
+
     
 
     // Filter data based on user input
