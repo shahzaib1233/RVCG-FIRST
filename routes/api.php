@@ -411,6 +411,13 @@ Route::prefix('website')->middleware('auth:sanctum')->group(function () {
 Route::prefix('website')->group(function () {
     Route::get('listing', [ListingsController::class, 'NotLogin_index']);
     Route::get('listing/{id}', [ListingsController::class, 'show']);
+      //mls data third party
+      Route::get('/mls-data-website', [MlsController::class, 'index']);
+      //mls data search filter
+      Route::get('/mls-data-website/search', [MlsController::class, 'filter_Data']);
+
+      //get all mls data
+      Route::post('mls-website/filter-data' ,  [MlsController::class,  'filterData']);
 });
 
 
