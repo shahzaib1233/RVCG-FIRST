@@ -418,6 +418,21 @@ Route::prefix('website')->group(function () {
 
       //get all mls data
       Route::post('mls-website/filter-data' ,  [MlsController::class,  'filterData']);
+
+      Route::get('cities/{id}', [CityController::class, 'show']);
+
+      Route::get('cities', [CityController::class, 'index']);
+
+    //   Property types
+      Route::get('propertiestypes', [ListingController::class, 'getPropertyType']);
+
+      //lead type
+      Route::get('/lead-types', [LeadTypeController::class, 'GetLeadType']);
+
+          //serch properties listing
+    Route::post('/listings/search', [ListingController::class, 'searchProperties']);
+
+
 });
 
 

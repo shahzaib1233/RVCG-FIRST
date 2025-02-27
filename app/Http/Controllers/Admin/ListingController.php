@@ -262,7 +262,6 @@ public function index()
         
         
         if ($request->filled('listing_media') && is_array($request->listing_media)) {
-            // Loop through each ID
 
             foreach ($request->listing_media as $tempId) {
                 // Find the temp data using the provided ID
