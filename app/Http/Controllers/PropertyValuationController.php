@@ -12,6 +12,8 @@ class PropertyValuationController extends Controller
 
 
 
+
+
     public function index()
 {
     $properties = PropertyValuation::all();
@@ -66,7 +68,7 @@ class PropertyValuationController extends Controller
                     $imageUrls[] = "uploads/valuations/{$newFileName}";
 
                     // Optionally delete from temp after copying
-                    // File::delete($oldPath);
+                      // File::delete($oldPath);
                     // $tempImage->delete();
                 }
             }
@@ -99,4 +101,23 @@ class PropertyValuationController extends Controller
         ], 201);
     }
 
+
+
+    public function show($id)
+{
+    $property = PropertyValuation::find($id);
+
+    if (!$property) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Property valuation not found'
+        ], 404);
+    }
+
+    return response()->json([
+        'success' => true,
+        'data' => $property
+    ]);
+
+}
 }

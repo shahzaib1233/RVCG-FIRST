@@ -440,6 +440,9 @@ Route::prefix('website')->group(function () {
     //get all valuations records
 
     Route::get('/property-valuation', [PropertyValuationController::class, 'index']);
+
+    //get single valuation record
+    Route::get('/property-valuation/{id}', [PropertyValuationController::class, 'show']);
 });
 
 
