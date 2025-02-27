@@ -57,7 +57,7 @@ Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
     Route::post('/files_temp', [ListingController::class,'gdrpAggrement_temp']);
 
 
-    Route::post('temp_files' , [TempDataController::class, 'tempUpload']);
+    // Route::post('temp_files' , [TempDataController::class, 'tempUpload']);
     //listing image store
     
 
@@ -453,6 +453,11 @@ Route::get('/user', function (Request $request) {
 
 
 
+
+
+
+    Route::post('admin/temp_files' , [TempDataController::class, 'tempUpload']);
+    //listing image store
 
 
 
