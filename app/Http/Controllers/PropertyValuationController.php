@@ -27,23 +27,23 @@ class PropertyValuationController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'title' => 'required|string',
-            'address' => 'required|string',
-            'city' => 'required|string',
-            'country' => 'required|string',
-            'property_type' => 'required|string',
-            'price' => 'required|numeric',
-            'square_foot' => 'required|integer',
-            'bedrooms' => 'required|integer',
-            'bathrooms' => 'required|integer',
-            'image_ids' => 'required|array', // Array of image IDs
+            'title' => 'nullable|string',
+            'address' => 'nullable|string',
+            'city' => 'nullable|string',
+            'country' => 'nullable|string',
+            'property_type' => 'nullable|string',
+            'price' => 'nullable|numeric',
+            'square_foot' => 'nullable|integer',
+            'bedrooms' => 'nullable|integer',
+            'bathrooms' => 'nullable|integer',
+            'image_ids' => 'nullable|array', // Array of image IDs
             'image_ids.*' => 'exists:temp_data,id', // Validate each ID
-            'owner_name' => 'required|string',
-            'owner_age' => 'required|integer',
-            'ownership_type' => 'required|string',
-            'owner_email' => 'required|email',
-            'govt_id_proof' => 'required|string',
-            'owner_contact' => 'required|string',
+            'owner_name' => 'nullable|string',
+            'owner_age' => 'nullable|integer',
+            'ownership_type' => 'nullable|string',
+            'owner_email' => 'nullable|email',
+            'govt_id_proof' => 'nullable|string',
+            'owner_contact' => 'nullable|string',
         ]);
 
         $imageUrls = [];
