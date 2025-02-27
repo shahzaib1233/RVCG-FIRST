@@ -27,6 +27,7 @@ use App\Http\Controllers\Admin\PropertyKpiController;
 use App\Http\Controllers\Admin\SavedPropertyController;
 use App\Http\Controllers\mls_data\MlsController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PropertyValuationController;
 
 Route::apiResource('post', PostController::class);
 Route::post('register',[AuthController::class,'register']);
@@ -433,6 +434,12 @@ Route::prefix('website')->group(function () {
     Route::post('/listings/search', [ListingController::class, 'searchProperties']);
 
 
+    // property valuation record
+    Route::post('/property-valuation', [PropertyValuationController::class, 'store']);
+
+    //get all valuations records
+
+    Route::get('/property-valuation', [PropertyValuationController::class, 'index']);
 });
 
 

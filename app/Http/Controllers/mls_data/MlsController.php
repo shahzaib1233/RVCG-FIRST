@@ -64,14 +64,11 @@ class MlsController extends Controller
 
     $results = $data['Results'] ?? [];
 
-    // Get the page number from the request, default is 1
     $page = $request->query('page', 1);
-    $perPage = 20; // Number of records per page
+    $perPage = 20;
 
-    // Calculate the offset
     $offset = ($page - 1) * $perPage;
 
-    // Paginate results
     $paginatedResults = array_slice($results, $offset, $perPage);
 
     return response()->json([
