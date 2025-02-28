@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\PackagesItemsController;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Admin\PropertyKpiController;
 use App\Http\Controllers\Admin\SavedPropertyController;
+use App\Http\Controllers\ContactFormController;
 use App\Http\Controllers\mls_data\MlsController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PropertyValuationController;
@@ -443,6 +444,15 @@ Route::prefix('website')->group(function () {
 
     //get single valuation record
     Route::get('/property-valuation/{id}', [PropertyValuationController::class, 'show']);
+
+    //contact form
+    Route::post('/contact-form', [ContactFormController::class, 'store']);
+
+    //get all contact form
+    Route::get('/contact-form', [ContactFormController::class, 'index']);
+
+    //get single contact form
+    Route::get('/contact-form/{id}', [ContactFormController::class, 'show']);
 });
 
 
