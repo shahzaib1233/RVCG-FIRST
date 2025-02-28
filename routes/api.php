@@ -431,7 +431,7 @@ Route::prefix('website')->group(function () {
       Route::get('/lead-types', [LeadTypeController::class, 'GetLeadType']);
 
           //serch properties listing
-    Route::post('/listings/search', [ListingController::class, 'searchProperties']);
+      Route::post('/listings/search', [ListingController::class, 'searchProperties']);
 
 
     // property valuation record
