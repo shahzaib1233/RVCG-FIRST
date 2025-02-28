@@ -83,63 +83,136 @@ class MlsController extends Controller
     
 
     // Filter data based on user input
+    // public function filterData(Request $request)
+    // {
+    //     $data = $this->fetchData();
+
+    //     if (!$data || !isset($data['Results']) || !is_array($data['Results'])) {
+    //         return response()->json(['error' => 'Invalid API response', 'data' => $data], 500);
+    //     }
+
+    //     $results = $data['Results'];
+
+    //     // Get filter parameters
+    //     $mlsStatus = $request->input('mlsStatus');
+    //     $minDaysOnMarket = $request->input('daysOnMarket.min');
+    //     $maxDaysOnMarket = $request->input('daysOnMarket.max');
+    //     $minListingPrice = $request->input('listingPrice.min');
+    //     $maxListingPrice = $request->input('listingPrice.max');
+    //     $keywords = $request->input('keywords', []);
+
+    //     // Filter results
+    //     $filteredResults = array_filter($results, function ($item) use ($mlsStatus, $minDaysOnMarket, $maxDaysOnMarket, $minListingPrice, $maxListingPrice, $keywords) {
+    //         if ($mlsStatus && isset($item['Status']) && strcasecmp($item['Status'], $mlsStatus) !== 0) {
+    //             return false;
+    //         }
+    //         if ($minDaysOnMarket && isset($item['DaysOnMarket']) && is_numeric($item['DaysOnMarket']) && $item['DaysOnMarket'] < $minDaysOnMarket) {
+    //             return false;
+    //         }
+    //         if ($maxDaysOnMarket && isset($item['DaysOnMarket']) && is_numeric($item['DaysOnMarket']) && $item['DaysOnMarket'] > $maxDaysOnMarket) {
+    //             return false;
+    //         }
+    //         if ($minListingPrice && isset($item['ListPrice']) && is_numeric($item['ListPrice']) && $item['ListPrice'] < $minListingPrice) {
+    //             return false;
+    //         }
+    //         if ($maxListingPrice && isset($item['ListPrice']) && is_numeric($item['ListPrice']) && $item['ListPrice'] > $maxListingPrice) {
+    //             return false;
+    //         }
+    //         if (!empty($keywords) && isset($item['Tags']) && is_array($item['Tags'])) {
+    //             foreach ($keywords as $keyword) {
+    //                 $found = false;
+    //                 foreach ($item['Tags'] as $tag) {
+    //                     if (isset($tag['Name']) && is_string($tag['Name']) && stripos($tag['Name'], $keyword) !== false) {
+    //                         $found = true;
+    //                         break; // Stop checking once a match is found
+    //                     }
+    //                 }
+    //                 if (!$found) {
+    //                     return false; // If any keyword is not found in Tags' Name field, exclude this item
+    //                 }
+    //             }
+    //         }
+    //         return true;
+            
+            
+            
+    //     });
+
+    //     return response()->json(["results" => array_values($filteredResults)]);
+    // }
+
+
     public function filterData(Request $request)
-    {
-        $data = $this->fetchData();
+{
+    $data = $this->fetchData();
 
-        if (!$data || !isset($data['Results']) || !is_array($data['Results'])) {
-            return response()->json(['error' => 'Invalid API response', 'data' => $data], 500);
+    if (!$data || !isset($data['Results']) || !is_array($data['Results'])) {
+        return response()->json(['error' => 'Invalid API response', 'data' => $data], 500);
+    }
+
+    $results = $data['Results'];
+
+    // Get filter parameters
+    $mlsStatus = $request->input('mlsStatus');
+    $minDaysOnMarket = $request->input('daysOnMarket.min');
+    $maxDaysOnMarket = $request->input('daysOnMarket.max');
+    $minListingPrice = $request->input('listingPrice.min');
+    $maxListingPrice = $request->input('listingPrice.max');
+    $keywords = $request->input('keywords', []);
+
+    // Filter results
+    $filteredResults = array_filter($results, function ($item) use ($mlsStatus, $minDaysOnMarket, $maxDaysOnMarket, $minListingPrice, $maxListingPrice, $keywords) {
+        if ($mlsStatus && isset($item['Status']) && strcasecmp($item['Status'], $mlsStatus) !== 0) {
+            return false;
         }
-
-        $results = $data['Results'];
-
-        // Get filter parameters
-        $mlsStatus = $request->input('mlsStatus');
-        $minDaysOnMarket = $request->input('daysOnMarket.min');
-        $maxDaysOnMarket = $request->input('daysOnMarket.max');
-        $minListingPrice = $request->input('listingPrice.min');
-        $maxListingPrice = $request->input('listingPrice.max');
-        $keywords = $request->input('keywords', []);
-
-        // Filter results
-        $filteredResults = array_filter($results, function ($item) use ($mlsStatus, $minDaysOnMarket, $maxDaysOnMarket, $minListingPrice, $maxListingPrice, $keywords) {
-            if ($mlsStatus && isset($item['Status']) && strcasecmp($item['Status'], $mlsStatus) !== 0) {
-                return false;
-            }
-            if ($minDaysOnMarket && isset($item['DaysOnMarket']) && is_numeric($item['DaysOnMarket']) && $item['DaysOnMarket'] < $minDaysOnMarket) {
-                return false;
-            }
-            if ($maxDaysOnMarket && isset($item['DaysOnMarket']) && is_numeric($item['DaysOnMarket']) && $item['DaysOnMarket'] > $maxDaysOnMarket) {
-                return false;
-            }
-            if ($minListingPrice && isset($item['ListPrice']) && is_numeric($item['ListPrice']) && $item['ListPrice'] < $minListingPrice) {
-                return false;
-            }
-            if ($maxListingPrice && isset($item['ListPrice']) && is_numeric($item['ListPrice']) && $item['ListPrice'] > $maxListingPrice) {
-                return false;
-            }
-            if (!empty($keywords) && isset($item['Tags']) && is_array($item['Tags'])) {
-                foreach ($keywords as $keyword) {
-                    $found = false;
-                    foreach ($item['Tags'] as $tag) {
-                        if (isset($tag['Name']) && is_string($tag['Name']) && stripos($tag['Name'], $keyword) !== false) {
-                            $found = true;
-                            break; // Stop checking once a match is found
-                        }
-                    }
-                    if (!$found) {
-                        return false; // If any keyword is not found in Tags' Name field, exclude this item
+        if ($minDaysOnMarket && isset($item['DaysOnMarket']) && is_numeric($item['DaysOnMarket']) && $item['DaysOnMarket'] < $minDaysOnMarket) {
+            return false;
+        }
+        if ($maxDaysOnMarket && isset($item['DaysOnMarket']) && is_numeric($item['DaysOnMarket']) && $item['DaysOnMarket'] > $maxDaysOnMarket) {
+            return false;
+        }
+        if ($minListingPrice && isset($item['ListPrice']) && is_numeric($item['ListPrice']) && $item['ListPrice'] < $minListingPrice) {
+            return false;
+        }
+        if ($maxListingPrice && isset($item['ListPrice']) && is_numeric($item['ListPrice']) && $item['ListPrice'] > $maxListingPrice) {
+            return false;
+        }
+        if (!empty($keywords) && isset($item['Tags']) && is_array($item['Tags'])) {
+            foreach ($keywords as $keyword) {
+                $found = false;
+                foreach ($item['Tags'] as $tag) {
+                    if (isset($tag['Name']) && is_string($tag['Name']) && stripos($tag['Name'], $keyword) !== false) {
+                        $found = true;
+                        break; // Stop checking once a match is found
                     }
                 }
+                if (!$found) {
+                    return false; // If any keyword is not found in Tags' Name field, exclude this item
+                }
             }
-            return true;
-            
-            
-            
-        });
+        }
+        return true;
+    });
 
-        return response()->json(["results" => array_values($filteredResults)]);
-    }
+    // Convert to array (reset indexes)
+    $filteredResults = array_values($filteredResults);
+
+    // Apply Pagination
+    $page = $request->query('page', 1);
+    $perPage = 20;
+    $offset = ($page - 1) * $perPage;
+
+    $paginatedResults = array_slice($filteredResults, $offset, $perPage);
+
+    return response()->json([
+        'results' => $paginatedResults,
+        'current_page' => $page,
+        'total_records' => count($filteredResults),
+        'total_pages' => ceil(count($filteredResults) / $perPage)
+    ]);
+}
+
+
 
     // Filter listings by status
     public function filterListings(Request $request)
