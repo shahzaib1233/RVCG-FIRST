@@ -209,23 +209,23 @@ class MlsController extends Controller
 
         $results = $data['Results'];
 
-        // Get search query from URL (?query=something)
+        
         $searchQuery = $request->query('query', '');
 
         if ($searchQuery) {
-            // Filter results dynamically based on the search query
+            
             $results = array_filter($results, function ($item) use ($searchQuery) {
                 foreach ($item as $key => $value) {
                     if (is_string($value) && stripos($value, $searchQuery) !== false) {
-                        return true; // Found a match in any column
+                        return true; 
                     } elseif (is_numeric($value) && stripos((string) $value, $searchQuery) !== false) {
-                        return true; // Match numeric values as well
+                        return true; 
                     }
                 }
                 return false;
             });
 
-            $results = array_values($results); // Reset array keys
+            $results = array_values($results); 
         }
 
         // Pagination logic
