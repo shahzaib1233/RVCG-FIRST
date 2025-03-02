@@ -55,21 +55,9 @@ class ListingController extends Controller
 
 public function index()
 {
-    $listings = Listing::with(['city', 'media', 'user', 'country', 'propertyType', 'propertyStatus', 'features', 'leadtypes'])
-    ->selectRaw("
-        listings.*, 
-        CASE 
-            WHEN saved_properties.listing_id IS NOT NULL 
-                 AND saved_properties.user_id = ? 
-            THEN 1 
-            ELSE 0 
-        END as is_favourite
-    ", [Auth::id()])
-    ->leftJoin('saved_properties', function ($join) {
-        $join->on('saved_properties.listing_id', '=', 'listings.id');
-    })
-    ->orderBy('listings.id', 'desc')
-    ->get();
+    $listings = Listing::with(['city','media', 'user', 'country', 'propertyType', 'propertyStatus', 'features' , 'leadtypes'])
+        ->orderBy('id', 'desc')
+        ->get();
 
     $listings->transform(function ($listing) {
        

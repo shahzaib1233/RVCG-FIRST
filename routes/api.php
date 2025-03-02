@@ -404,8 +404,8 @@ Route::delete('/other-features/{id}', [OtherFeatureController::class, 'destroy']
 //website login routes
 
 Route::prefix('website')->middleware('auth:sanctum')->group(function () {
-    Route::get('listings', [ListingsController::class, 'index']);
-    Route::get('listings/{id}', [ListingsController::class, 'show']);
+    Route::get('listings/auth', [ListingsController::class, 'index']);
+    Route::get('listings/auth/{id}', [ListingsController::class, 'show']);
 });
 
 
