@@ -1094,7 +1094,6 @@ public function update(Request $request, $id)
         ], 403); 
     }
 }
-
 public function searchProperties(Request $request)
 {
     $query = Listing::with(['city', 'media', 'user', 'country', 'propertyType', 'propertyStatus', 'features', 'leadtypes']);
@@ -1157,6 +1156,9 @@ if ($request->filled('lead_types_id') && !empty($request->lead_types_id)) {
 
     return response()->json($properties);
 }
+
+
+
 
 
 
