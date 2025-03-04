@@ -223,6 +223,9 @@ class MlsController extends Controller
     
 
 
+    
+
+
     // Filter listings by status
     public function filterListings(Request $request)
     {
