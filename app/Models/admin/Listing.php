@@ -129,16 +129,23 @@ public function getArvAttribute()
         return 0;
     }
 
-    // Accessor for ROI (Return on Investment)
-public function getRoiAttribute()
+    public function getRoiAttribute()
 {
     $arv = $this->arv;
-    $totalInvestmentCost = $this->price + ($this->repair_cost ?? 0) + ($this->wholesale_fee ?? 0);
+    $purchasePrice = $this->price; // Purchase Price
+    $repairCost = $this->repair_cost ?? 0; // Repair Costs
+    $closingCost = $this->closing_cost ?? 0; // Closing Costs (Missing before)
+    
+    // Correct Total Investment Calculation
+    $totalInvestment = $purchasePrice + $repairCost + $closingCost;
 
-    $profit = $arv - $totalInvestmentCost;
+    // Correct Net Profit Calculation
+    $profit = $arv - $totalInvestment;
 
-    return $arv && $totalInvestmentCost > 0 ? ($profit / $totalInvestmentCost) * 100 : null;
+    // Correct ROI Formula
+    return ($totalInvestment > 0) ? ($profit / $totalInvestment) * 100 : null;
 }
+
 
 
 
