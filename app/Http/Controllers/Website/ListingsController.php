@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Website;
 
 use App\Http\Controllers\Controller;
+use App\Models\admin\Cities;
 use App\Models\admin\Listing;
 use App\Models\admin\PropertyKpi;
 use App\Models\admin\SavedProperty;
 use App\Models\admin\Skiptrace;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ListingsController extends Controller
 {
@@ -295,6 +297,25 @@ public function show(Request $request, $id)
 
     return response()->json($listing);
 }
+
+
+
+
+
+
+public function city_data_Home_page_api()
+{
+    dd("Function is being called!");
+    
+    $cities = Cities::whereHas('listings')->distinct()->get();
+
+    if ($cities->isEmpty()) {
+        return response()->json(['message' => 'No cities found with listings'], 404);
+    }
+
+    return response()->json($cities);
+}
+
 
 
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\mls_data;
 
 use App\Http\Controllers\Controller;
+use App\Models\admin\Cities;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -329,5 +330,23 @@ class MlsController extends Controller
         ]);
     }
 
+
+
+
+
+
+
+
+    public function city_data_Home_page_api()
+{
+    
+    $cities = Cities::whereHas('listings')->distinct()->get();
+
+    if ($cities->isEmpty()) {
+        return response()->json(['message' => 'No cities found with listings'], 404);
+    }
+
+    return response()->json($cities);
+}
 
 }

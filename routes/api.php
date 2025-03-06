@@ -453,6 +453,10 @@ Route::prefix('website')->group(function () {
 
     //get single contact form
     Route::get('/contact-form/{id}', [ContactFormController::class, 'show']);
+
+    //get cities whose listings exist
+    Route::get('/cities_home', [MlsController::class, 'city_data_Home_page_api']);
+
 });
 
 

@@ -21,6 +21,13 @@ class Cities extends Model
     {
         return $value ? url($value) : null;
     }
+
+    public function listings()
+    {
+        return $this->hasMany(Listing::class, 'city_id');
+    }
     
+
+
 }
 
